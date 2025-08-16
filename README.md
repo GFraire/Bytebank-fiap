@@ -25,7 +25,7 @@ npm install
 npm run seed
 
 # 3. Altere o nome do arquivo .env.example para .env
-mv .env.example .env
+cp .env.example .env
 
 # 4. Inicie o JSON Server
 npm run json-server
