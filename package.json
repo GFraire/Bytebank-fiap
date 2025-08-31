@@ -1,32 +1,32 @@
 {
-  "name": "01-bytebank-nextjs",
-  "version": "0.1.0",
-  "private": true,
+  "name": "bytebank-microfrontend",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "seed": "ts-node src/data/seed.ts",
-    "json-server": "json-server --watch src/db.json --port 8000"
+    "copy:tailwind": "pnpm --filter tailwind-config run copy:tailwind",
+    "dev:add-transaction": "pnpm --filter add-transaction run dev",
+    "dev:dashboard": "pnpm --filter dashboard run dev",
+    "dev:main-app": "pnpm --filter main-app run dev",
+    "dev:profile": "pnpm --filter profile run dev",
+    "dev:sidebar": "pnpm --filter sidebar run dev",
+    "dev:transactions": "pnpm --filter transactions run dev",
+    "dev:api": "pnpm --filter api run dev",
+    "dev:api-files": "pnpm --filter api-files run dev",
+    "dev:all": "concurrently --kill-others --names add,dash,profile,sidebar,tx,main --colors blue,green,cyan,magenta,white,gray \"pnpm dev:add-transaction\" \"pnpm dev:dashboard\" \"pnpm dev:profile\" \"pnpm dev:sidebar\" \"pnpm dev:transactions\" \"pnpm dev:main-app\"",
+    "build": "pnpm -r run build",
+    "deploy:dashboard": "cd dashboard && vercel --prod",
+    "deploy:sidebar": "cd sidebar && vercel --prod",
+    "deploy:transactions": "cd transactions && vercel --prod",
+    "deploy:add-transaction": "cd add-transaction && vercel --prod",
+    "deploy:profile": "cd profile && vercel --prod",
+    "deploy:main-app": "cd main-app && vercel --prod",
+    "deploy:all": "pnpm deploy:dashboard && pnpm deploy:sidebar && pnpm deploy:transactions && pnpm deploy:add-transaction && pnpm deploy:profile && pnpm deploy:main-app"
   },
-  "dependencies": {
-    "@radix-ui/react-select": "^2.2.5",
-    "@stitches/react": "^1.2.8",
-    "@types/date-fns": "^2.6.3",
-    "axios": "^1.9.0",
-    "date-fns": "^4.1.0",
-    "framer-motion": "^12.12.2",
-    "lucide-react": "^0.511.0",
-    "next": "15.3.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+  "overrides": {
+    "webpack": "5.100.1",
+    "@module-federation/nextjs-mf": "6.0.4",
+    "zod": "4.0.14"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "json-server": "^1.0.0-beta.3",
-    "typescript": "^5"
+    "concurrently": "^9.2.0"
   }
 }

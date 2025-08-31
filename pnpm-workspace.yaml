@@ -1,0 +1,10 @@
+packages:
+  - 'add-transaction'
+  - 'dashboard'
+  - 'api'
+  - 'api-files'
+  - 'main-app'
+  - 'profile'
+  - 'sidebar'
+  - 'transactions'
+  - 'tailwind-config'
