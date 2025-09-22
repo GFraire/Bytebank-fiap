@@ -6,7 +6,8 @@ export const Colors = {
   green: "#47A138",
   "green-light": "#E4EDE3",
   "green-btn": "#16A34A", // acessibility improvement
-  white: "#F5F5F5",
+  white: "#FFFFFF",
+  "gray-100": "#F8F8F8",
   "gray-300": "#CBCBCB",
   "gray-500": "#444444",
   "gray-600": "#8B8B8B",

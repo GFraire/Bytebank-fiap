@@ -1,26 +1,10 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { Pressable, Text, View } from "react-native";
 
 export default function Index() {
-  const [isLoading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function checkToken() {
-      const token = await AsyncStorage.getItem("token");
-
-      if (!token) {
-        console.log(token);
-        
-        router.replace("/");
-      } else {
-        setLoading(false);
-      }
-    }
-
-    checkToken();
-  }, []);
+  const { user } = useAuthStore();
+  const { logout } = useAuth();
 
   return (
     <View
@@ -30,7 +14,9 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Index</Text>
+      <Pressable onPress={logout}>
+        <Text>{user?.email}</Text>
+      </Pressable>
     </View>
   );
 }

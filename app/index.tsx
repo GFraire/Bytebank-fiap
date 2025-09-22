@@ -1,4 +1,24 @@
 import {
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import {
   IconDevices,
   IconMoney,
   IconPresent,
@@ -6,31 +26,23 @@ import {
 } from "@/components/icons";
 import { Footer } from "@/components/login/footer";
 import { HeroItem } from "@/components/login/hero-item";
+import { ModalCreateUser } from "@/components/login/modal-create-user";
 import { Colors } from "@/constants/theme";
-import {
-  Inter_400Regular,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from "@expo-google-fonts/inter";
-import { LinearGradient } from "expo-linear-gradient";
-import {
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Login() {
+  const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
+    useState(false);
+
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  const { user } = useAuthStore();
+  const { loading } = useAuth();
 
   const HERO_DATA = [
     {
@@ -59,8 +71,26 @@ export default function Login() {
     },
   ];
 
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/(tabs)/dashboard");
+    }
+  }, [user, loading]);
+
+  function onSetVisible(value: boolean) {
+    setIsCreateUserModalVisible(value);
+  }
+
   if (!fontsLoaded) {
     return null;
+  }
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
   return (
@@ -78,15 +108,18 @@ export default function Login() {
           style={styles.linearGradient}
         >
           <View style={styles.buttonContainer}>
-            <Pressable style={styles.button}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setIsCreateUserModalVisible(true)}
+            >
               <Text style={styles.buttonText}>Abrir conta</Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
               style={[styles.button, { marginLeft: 24 }, styles.buttonOutlined]}
             >
               <Text style={styles.buttonText}>Já tenho conta</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.bannerContainer}>
@@ -101,24 +134,25 @@ export default function Login() {
             />
           </View>
 
-          <View>
-            <FlatList
-              data={HERO_DATA}
-              keyExtractor={(item) => item.title}
-              renderItem={({ item }) => (
-                <HeroItem
-                  description={item.description}
-                  icon={item.icon}
-                  title={item.title}
-                />
-              )}
-              ItemSeparatorComponent={() => <View style={{ height: 32 }} />}
-            />
+          <View style={{ gap: 24 }}>
+            {HERO_DATA.map((item) => (
+              <HeroItem
+                key={item.title}
+                icon={item.icon}
+                title={item.title}
+                description={item.description}
+              />
+            ))}
           </View>
         </LinearGradient>
 
         <Footer />
       </ScrollView>
+
+      <ModalCreateUser
+        isVisible={isCreateUserModalVisible}
+        setVisible={onSetVisible}
+      />
     </SafeAreaView>
   );
 }
