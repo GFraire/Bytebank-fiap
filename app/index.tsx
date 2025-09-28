@@ -27,6 +27,7 @@ import {
 import { Footer } from "@/components/login/footer";
 import { HeroItem } from "@/components/login/hero-item";
 import { ModalCreateUser } from "@/components/login/modal-create-user";
+import { ModalLoginUser } from "@/components/login/modal-login-user";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -34,6 +35,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
     useState(false);
+  const [isLoginUserModalVisible, setIsLoginUserModalVisible] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -77,8 +79,12 @@ export default function Login() {
     }
   }, [user, loading]);
 
-  function onSetVisible(value: boolean) {
+  function onSetCreateUserVisible(value: boolean) {
     setIsCreateUserModalVisible(value);
+  }
+
+  function onSetLoginUserVisible(value: boolean) {
+    setIsLoginUserModalVisible(value);
   }
 
   if (!fontsLoaded) {
@@ -117,6 +123,7 @@ export default function Login() {
 
             <TouchableOpacity
               style={[styles.button, { marginLeft: 24 }, styles.buttonOutlined]}
+              onPress={() => setIsLoginUserModalVisible(true)}
             >
               <Text style={styles.buttonText}>Já tenho conta</Text>
             </TouchableOpacity>
@@ -151,7 +158,12 @@ export default function Login() {
 
       <ModalCreateUser
         isVisible={isCreateUserModalVisible}
-        setVisible={onSetVisible}
+        setVisible={onSetCreateUserVisible}
+      />
+
+      <ModalLoginUser
+        isVisible={isLoginUserModalVisible}
+        setVisible={onSetLoginUserVisible}
       />
     </SafeAreaView>
   );

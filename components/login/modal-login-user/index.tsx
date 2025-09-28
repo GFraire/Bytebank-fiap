@@ -12,51 +12,43 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
-interface ModalCreateUserProps {
+interface ModalLoginUserProps {
   isVisible: boolean;
   setVisible: (value: boolean) => void;
 }
 
-export function ModalCreateUser({
-  isVisible,
-  setVisible,
-}: ModalCreateUserProps) {
-  const [name, setName] = useState("");
+export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { setUser } = useAuthStore();
-  const { register } = useAuth();
+  const { login } = useAuth();
 
-  const isFormValid = name && email && password;
+  const isFormValid = email && password;
 
   function handleEmailChange(text: string) {
     setEmail(text);
-  }
-
-  function handleNameChange(text: string) {
-    setName(text);
   }
 
   function handlePasswordChange(text: string) {
     setPassword(text);
   }
 
-  async function handleSignUp() {
-    const { user, error } = await register(email, password, name);
+  async function handleSignIn() {
+    const { user, error } = await login(email, password);
 
     if (error || !user) {
-      console.log("Erro ao registrar:", error);
+      console.log("Erro ao logar:", error);
       // Exibir toast/alert
       return;
     }
 
     setUser({
       uid: user.uid,
-      displayName: name,
+      displayName: user.displayName as string,
       email,
     });
 
@@ -64,7 +56,12 @@ export function ModalCreateUser({
   }
 
   return (
-    <Modal visible={isVisible} animationType="slide" transparent onRequestClose={() => setVisible(false)}>
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setVisible(false)}
+    >
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
           <Pressable style={styles.close} onPress={() => setVisible(false)}>
@@ -77,16 +74,10 @@ export function ModalCreateUser({
           />
 
           <Text style={styles.title}>
-            Preencha os campos abaixo para criar sua conta corrente!
+            Preencha os campos abaixo para logar na sua conta!
           </Text>
 
           <View style={styles.form}>
-            <InputField
-              label="Nome"
-              placeholder="Digite seu nome completo"
-              onChangeText={handleNameChange}
-            />
-
             <InputField
               label="E-mail"
               placeholder="Digite seu e-mail"
@@ -100,15 +91,15 @@ export function ModalCreateUser({
               type="password"
               onChangeText={handlePasswordChange}
             />
-          </View>
 
-          <TouchableOpacity
-            style={[styles.button, !isFormValid && styles.buttonDisabled]}
-            disabled={!isFormValid}
-            onPress={handleSignUp}
-          >
-            <Text style={styles.buttonText}>Criar conta</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, !isFormValid && styles.buttonDisabled]}
+              disabled={!isFormValid}
+              onPress={handleSignIn}
+            >
+              <Text style={styles.buttonText}>Acessar conta</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>

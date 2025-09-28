@@ -10,11 +10,11 @@ import {
 } from "firebase/auth";
 import { useEffect, useState } from "react";
 
-interface RegisterResult {
+interface AuthResult {
   user: {
     uid: string;
-    email: string | null;
-    displayName: string | null;
+    email: string;
+    displayName: string;
   } | null;
   error: string | null;
 }
@@ -41,15 +41,31 @@ export function useAuth() {
     return unsubscribe; // limpa o listener quando desmonta
   }, []);
 
-  async function login(email: string, password: string) {
-    return await signInWithEmailAndPassword(auth, email, password);
+  async function login(email: string, password: string): Promise<AuthResult> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email as string,
+        displayName: userCredential.user.displayName as string,
+      };
+
+      return { user, error: null };
+    } catch (error: any) {
+      return { user: null, error: error.message };
+    }
   }
 
   async function register(
     email: string,
     password: string,
     name: string
-  ): Promise<RegisterResult> {
+  ): Promise<AuthResult> {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -63,8 +79,8 @@ export function useAuth() {
 
       const user = {
         uid: userCredential.user.uid,
-        email: userCredential.user.email,
-        displayName: userCredential.user.displayName,
+        email: userCredential.user.email as string,
+        displayName: userCredential.user.displayName as string,
       };
 
       return { user, error: null };
@@ -74,8 +90,8 @@ export function useAuth() {
   }
 
   async function logout() {
-    await signOut(auth)
-    
+    await signOut(auth);
+
     router.replace("/");
   }
 
