@@ -1,7 +1,6 @@
 import { InputField } from "@/components/input-field";
 import { Colors } from "@/constants/theme";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -24,8 +23,7 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setUser } = useAuthStore();
-  const { login } = useAuth();
+  const { login } = useUserStore();
 
   const isFormValid = email && password;
 
@@ -38,19 +36,13 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
   }
 
   async function handleSignIn() {
-    const { user, error } = await login(email, password);
+    const { error } = await login(email, password);
 
-    if (error || !user) {
+    if (error) {
       console.log("Erro ao logar:", error);
       // Exibir toast/alert
       return;
     }
-
-    setUser({
-      uid: user.uid,
-      displayName: user.displayName as string,
-      email,
-    });
 
     router.push("/(tabs)/dashboard");
   }

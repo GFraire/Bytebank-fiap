@@ -29,13 +29,14 @@ import { HeroItem } from "@/components/login/hero-item";
 import { ModalCreateUser } from "@/components/login/modal-create-user";
 import { ModalLoginUser } from "@/components/login/modal-login-user";
 import { Colors } from "@/constants/theme";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useUserStore } from "@/stores/useUserStore";
+import { StatusBar } from "expo-status-bar";
 
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
     useState(false);
   const [isLoginUserModalVisible, setIsLoginUserModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -43,8 +44,7 @@ export default function Login() {
     Inter_700Bold,
   });
 
-  const { user } = useAuthStore();
-  const { loading } = useAuth();
+  const { user, setUser } = useUserStore();
 
   const HERO_DATA = [
     {
@@ -72,6 +72,24 @@ export default function Login() {
         "Seus dispositivos móveis (computador e laptop) protegidos por uma mensalidade simbólica.",
     },
   ];
+
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+  //     if (!firebaseUser) {
+  //       setUser(null);
+  //     } else {
+  //       setUser({
+  //         uid: firebaseUser.uid,
+  //         email: firebaseUser.email || "",
+  //         displayName: firebaseUser.displayName || "",
+  //       });
+  //     }
+
+  //     setLoading(false);
+  //   });
+
+  //   return unsubscribe; // limpa o listener quando desmonta
+  // }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -101,6 +119,8 @@ export default function Login() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+
       <ScrollView>
         <View style={styles.header}>
           <Image
@@ -172,6 +192,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.black
   },
   header: {
     backgroundColor: Colors.black,

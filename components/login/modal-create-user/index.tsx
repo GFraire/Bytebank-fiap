@@ -1,7 +1,6 @@
 import { InputField } from "@/components/input-field";
 import { Colors } from "@/constants/theme";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -12,7 +11,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 interface ModalCreateUserProps {
@@ -28,8 +27,7 @@ export function ModalCreateUser({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setUser } = useAuthStore();
-  const { register } = useAuth();
+  const { signUp } = useUserStore();
 
   const isFormValid = name && email && password;
 
@@ -46,25 +44,24 @@ export function ModalCreateUser({
   }
 
   async function handleSignUp() {
-    const { user, error } = await register(email, password, name);
+    const { error: singUpError } = await signUp(email, password, name);
 
-    if (error || !user) {
-      console.log("Erro ao registrar:", error);
+    if (singUpError) {
+      console.log("Erro ao registrar:", singUpError);
       // Exibir toast/alert
       return;
     }
-
-    setUser({
-      uid: user.uid,
-      displayName: name,
-      email,
-    });
 
     router.push("/(tabs)/dashboard");
   }
 
   return (
-    <Modal visible={isVisible} animationType="slide" transparent onRequestClose={() => setVisible(false)}>
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setVisible(false)}
+    >
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
           <Pressable style={styles.close} onPress={() => setVisible(false)}>

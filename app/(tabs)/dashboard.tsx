@@ -1,22 +1,48 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { Pressable, Text, View } from "react-native";
+import { Summary } from "@/components/dashboard/summary";
+import { Header } from "@/components/header";
+import { Colors } from "@/constants/theme";
+import { ITransaction, useTransaction } from "@/hooks/useTransaction";
+import { useUserStore } from "@/stores/useUserStore";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
-  const { user } = useAuthStore();
-  const { logout } = useAuth();
+  const [transactions, setTransactions] = useState([] as ITransaction[]);
+
+  const { user } = useUserStore();
+  const { getTransactionsByUser } = useTransaction();
+
+  useEffect(() => {
+    async function fetchTransactions() {
+      if (!user?.uid) return;
+
+      const data = await getTransactionsByUser(user?.uid);
+      setTransactions(data);
+    }
+
+    fetchTransactions();
+  }, []);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Pressable onPress={logout}>
-        <Text>{user?.email}</Text>
-      </Pressable>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+
+      <Header
+        description="Visão geral de suas finanças"
+        icon="bar-chart-sharp"
+        title="Dashboard"
+      />
+
+      <Summary />
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+});
