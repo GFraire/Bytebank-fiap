@@ -24,6 +24,8 @@ interface AuthState {
   user: IUserData | null;
   loading: boolean;
   transactions: ITransaction[] | null;
+  lastTransactionDoc?: any;
+  loadingTransactions: boolean;
   setUser: (user: IUserData | null) => void;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
@@ -33,16 +35,21 @@ interface AuthState {
   ) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   addTransaction: (
-    transaction: ITransaction
+    transaction: Omit<ITransaction, "uid">
   ) => Promise<{ error: string | null }>;
   getTransactions: () => Promise<{ error: string | null }>;
+  loadMoreTransactions: () => Promise<void>;
 }
 
 export const useUserStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
   transactions: null,
+  lastTransactionDoc: undefined,
+  loadingTransactions: false,
+
   setUser: (user) => set({ user }),
+
   login: async (email, password) => {
     set({ loading: true });
 
@@ -54,7 +61,6 @@ export const useUserStore = create<AuthState>((set) => ({
         email,
         password
       );
-
       const userSummaryResult = await getUserSummary(userCredential.user.uid);
 
       if (!userSummaryResult.userSummary) {
@@ -72,13 +78,13 @@ export const useUserStore = create<AuthState>((set) => ({
       };
 
       set({ user, loading: false });
-
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
       return { error: error.message };
     }
   },
+
   signUp: async (email, password, name) => {
     set({ loading: true });
 
@@ -91,10 +97,7 @@ export const useUserStore = create<AuthState>((set) => ({
         password
       );
 
-      await updateProfile(userCredential.user, {
-        displayName: name,
-      });
-
+      await updateProfile(userCredential.user, { displayName: name });
       const userSummaryResult = await addUserSummary(userCredential.user.uid);
 
       if (userSummaryResult.error) {
@@ -112,77 +115,126 @@ export const useUserStore = create<AuthState>((set) => ({
       };
 
       set({ user, loading: false });
-
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
-
       return { error: error.message };
     }
   },
+
   addTransaction: async (transaction) => {
+    set({ loading: true });
     const { addTransaction } = useTransaction();
     const { updateUserSummary } = useUserSummary();
 
-    const { error: addTransactionError } = await addTransaction(transaction);
-    if (addTransactionError) return { error: addTransactionError };
-
     const state = useUserStore.getState();
-    const uid = state.user?.uid;
-    if (!uid) return { error: "Usuário não autenticado." };
+    const userUid = state.user?.uid;
+    if (!userUid) return { error: "Usuário não autenticado." };
 
-    // Calcula os novos valores do resumo
-    const prev = state.user;
-    if (!prev) return { error: "Usuário não autenticado." };
+    const { transaction: newTransaction, error: addTransactionError } =
+      await addTransaction(transaction);
+    if (addTransactionError) {
+      set({ loading: false });
+      return { error: addTransactionError };
+    }
 
+    const prev = state.user!;
     let newIncome = prev.totalIncome;
     let newExpense = prev.totalExpense;
 
-    if (transaction.flow === "income") {
-      newIncome += Number(transaction.amount);
-    } else if (transaction.flow === "expense") {
-      newExpense += Number(transaction.amount);
-    }
+    if (newTransaction.flow === "income")
+      newIncome += Number(newTransaction.amount);
+    if (newTransaction.flow === "expense")
+      newExpense += Number(newTransaction.amount);
 
     const newBalance = newIncome - newExpense;
 
-    // Atualiza no Firestore
-    const { userSummary, error } = await updateUserSummary(uid, {
-      totalIncome: newIncome,
-      totalExpense: newExpense,
-      balance: newBalance,
-    });
+    const { userSummary, error: userSummaryerror } = await updateUserSummary(
+      userUid,
+      {
+        totalIncome: newIncome,
+        totalExpense: newExpense,
+        balance: newBalance,
+      }
+    );
+
+    if (userSummaryerror) {
+      set({ loading: false });
+      return { error: userSummaryerror };
+    }
 
     if (userSummary) {
-      // Atualiza o estado local da store
       useUserStore.setState((prevState) => ({
         user: { ...prevState.user!, ...userSummary },
-        // Atualiza o array de transactions
+        loading: false,
         transactions: prevState.transactions
-          ? [...prevState.transactions, transaction]
-          : [transaction],
+          ? [...prevState.transactions, newTransaction]
+          : [newTransaction],
       }));
     }
 
     return { error: null };
   },
+
   getTransactions: async () => {
     const { getTransactionsByUser } = useTransaction();
 
     const state = useUserStore.getState();
     const uid = state.user?.uid;
+
     if (!uid) return { error: "Usuário não autenticado." };
 
-    const { transactions, error } = await getTransactionsByUser(uid);
+    set({ loadingTransactions: true });
 
-    if (!transactions) {
+    const { transactions, lastDoc, error } = await getTransactionsByUser(
+      uid,
+      10
+    );
+    
+    if (error) {
+      set({ loadingTransactions: false });
+      console.log(error);
+      
       return { error };
     }
 
-    set({ transactions });
-
+    set({
+      transactions,
+      lastTransactionDoc: lastDoc,
+      loadingTransactions: false,
+    });
     return { error: null };
   },
+
+  loadMoreTransactions: async () => {
+    const { getTransactionsByUser } = useTransaction();
+
+    const state = useUserStore.getState();
+    const uid = state.user?.uid;
+    if (!uid || !state.lastTransactionDoc) return;
+
+    set({ loadingTransactions: true });
+
+    const {
+      transactions: newTransactions,
+      lastDoc,
+      error,
+    } = await getTransactionsByUser(uid, 10, state.lastTransactionDoc);
+
+
+    if (!error) {
+      set({
+        transactions: state.transactions
+          ? [...state.transactions, ...newTransactions]
+          : newTransactions,
+        lastTransactionDoc: lastDoc,
+        loadingTransactions: false,
+      });
+    } else {
+      set({ loadingTransactions: false });
+    }
+  },
+
   logout: async () => {
     await signOut(auth);
     set({ user: null });
@@ -196,7 +248,6 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     return;
   }
 
-  // Busca o resumo no Firestore
   const { getUserSummary } = useUserSummary();
   const userSummaryResult = await getUserSummary(firebaseUser.uid);
 

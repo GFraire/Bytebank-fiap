@@ -1,3 +1,4 @@
+import { BaseButton } from "@/components/base-button";
 import DateField from "@/components/date-field";
 import PickerField from "@/components/picker-field";
 import TextField from "@/components/text-field";
@@ -6,15 +7,10 @@ import {
   TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
 } from "@/hooks/useTransaction";
+import { useToastStore } from "@/stores/toastStore";
 import { useUserStore } from "@/stores/userStore";
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 export default function TransactionForm() {
   const [description, setDescription] = useState("");
@@ -25,7 +21,12 @@ export default function TransactionForm() {
   const [date, setDate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { user, addTransaction } = useUserStore();
+  const { user, loading, addTransaction } = useUserStore();
+  const { addToast } = useToastStore();
+
+  const isFormFilled = [description, amount, type, flow, category, date].every(
+    Boolean
+  );
 
   async function handleSubmit() {
     const newErrors: Record<string, string> = {};
@@ -66,7 +67,7 @@ export default function TransactionForm() {
     setErrors({});
 
     const { error } = await addTransaction({
-      uid: user?.uid || "",
+      userUid: user?.uid || "",
       description,
       amount: Number(amount.replace(/\./g, "").replace(",", ".")),
       flow: flow as "income" | "expense",
@@ -75,6 +76,12 @@ export default function TransactionForm() {
       createdAt: new Date().toISOString(),
       date: new Date(date).toISOString(),
     });
+
+    if (error) {
+      addToast("Erro ao adicionar transação: " + error, "error");
+
+      return
+    }
 
     clearForm();
   }
@@ -150,9 +157,13 @@ export default function TransactionForm() {
 
         {/* Botão */}
         <View style={styles.buttonWrapper}>
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Adicionar Transação</Text>
-          </TouchableOpacity>
+          <BaseButton
+            title="Adicionar Transação"
+            onPress={handleSubmit}
+            type="success"
+            disabled={!isFormFilled}
+            loading={loading}
+          />
         </View>
       </View>
     </ScrollView>

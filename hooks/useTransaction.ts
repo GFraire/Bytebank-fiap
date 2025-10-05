@@ -1,8 +1,20 @@
 import { db } from "@/firebaseConfig";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  QueryDocumentSnapshot,
+  startAfter,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 export interface ITransaction {
   uid: string;
+  userUid: string;
   description: string;
   amount: number;
   flow: "income" | "expense";
@@ -36,30 +48,51 @@ export const TRANSACTION_CATEGORIES: { label: string; value: string }[] = [
 
 export function useTransaction() {
   async function addTransaction(
-    transaction: ITransaction
-  ): Promise<{ error: string | null }> {
+    transaction: Omit<ITransaction, "uid">
+  ): Promise<{ transaction: ITransaction; error: string | null }> {
     try {
-      await addDoc(collection(db, "transactions"), transaction);
+      const docRef = await addDoc(collection(db, "transactions"), transaction);
 
-      return { error: null };
+      await updateDoc(docRef, {
+        uid: docRef.id,
+      });
+
+      return { transaction: { ...transaction, uid: docRef.id }, error: null };
     } catch (error: any) {
-      return { error: error.message };
+      return { transaction: { ...transaction, uid: "" }, error: error.message };
     }
   }
 
   async function getTransactionsByUser(
-    uid: string
-  ): Promise<{ transactions: ITransaction[] | null; error: string | null }> {
+    userUid: string,
+    pageSize = 10,
+    startAfterDoc?: QueryDocumentSnapshot
+  ): Promise<{
+    transactions: ITransaction[];
+    lastDoc?: QueryDocumentSnapshot;
+    error: string | null;
+  }> {
     try {
-      const q = query(collection(db, "transactions"), where("uid", "==", uid));
-      const querySnapshot = await getDocs(q);
-      const transactions = querySnapshot.docs.map(
-        (doc) => doc.data() as ITransaction
+      let q = query(
+        collection(db, "transactions"),
+        where("userUid", "==", userUid),
+        orderBy("date", "desc"),
+        limit(pageSize)
       );
 
-      return { transactions, error: null };
+      if (startAfterDoc) {
+        q = query(q, startAfter(startAfterDoc));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const transactions = querySnapshot.docs.map(
+        (doc) => ({ uid: doc.id, ...doc.data() } as ITransaction)
+      );
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+      return { transactions, lastDoc, error: null };
     } catch (error: any) {
-      return { transactions: null, error: error.message };
+      return { transactions: [], error: error.message };
     }
   }
 
