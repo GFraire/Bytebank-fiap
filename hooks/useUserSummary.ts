@@ -1,5 +1,12 @@
 import { db } from "@/firebaseConfig";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 export interface IUserSummary {
   balance: number;
@@ -53,5 +60,33 @@ export function useUserSummary() {
     }
   }
 
-  return { addUserSummary, getUserSummary };
+  async function updateUserSummary(
+    uid: string,
+    updates: Partial<IUserSummary>
+  ): Promise<{ userSummary: IUserSummary | null; error: string | null }> {
+    try {
+      const q = query(collection(db, "user-summary"), where("uid", "==", uid));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return {
+          userSummary: null,
+          error: "Nenhum resumo encontrado para este usuário.",
+        };
+      }
+
+      const docRef = querySnapshot.docs[0].ref;
+      const currentData = querySnapshot.docs[0].data() as IUserSummary;
+
+      // Atualiza no Firestore
+      await updateDoc(docRef, updates);
+
+      // Retorna o objeto atualizado localmente
+      return { userSummary: { ...currentData, ...updates }, error: null };
+    } catch (error: any) {
+      return { userSummary: null, error: error.message };
+    }
+  }
+
+  return { addUserSummary, getUserSummary, updateUserSummary };
 }

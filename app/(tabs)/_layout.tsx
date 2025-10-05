@@ -16,7 +16,39 @@ export default function RootLayout() {
         name="dashboard"
         options={{
           title: "Início",
-          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={24} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="extract"
+        options={{
+          title: "Extrato",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="clipboard-outline" size={24} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="add-transaction"
+        options={{
+          title: "Adicionar",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="add" size={24} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={24} color={color} />
+          ),
         }}
       />
     </Tabs>

@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { useUserStore } from "@/stores/useUserStore";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
@@ -15,6 +16,12 @@ export function Header({ icon, title, description }: IHeaderProps) {
   const { user, logout } = useUserStore();
 
   const userName = user?.displayName.split(" ")[0];
+
+  async function handleLogout() {
+    await logout();
+    router.replace("/login");
+
+  }
 
   return (
     <View style={styles.container}>

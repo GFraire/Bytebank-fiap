@@ -1,4 +1,4 @@
-import { InputField } from "@/components/input-field";
+import { InputField } from "@/components/screens/login/input-field";
 import { Colors } from "@/constants/theme";
 import { useUserStore } from "@/stores/useUserStore";
 import { Ionicons } from "@expo/vector-icons";

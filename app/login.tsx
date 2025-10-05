@@ -6,7 +6,8 @@ import {
 } from "@expo-google-fonts/inter";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -24,19 +25,17 @@ import {
   IconPresent,
   IconStar,
 } from "@/components/icons";
-import { Footer } from "@/components/login/footer";
-import { HeroItem } from "@/components/login/hero-item";
-import { ModalCreateUser } from "@/components/login/modal-create-user";
-import { ModalLoginUser } from "@/components/login/modal-login-user";
+import { Footer } from "@/components/screens/login/footer";
+import { HeroItem } from "@/components/screens/login/hero-item";
+import { ModalCreateUser } from "@/components/screens/login/modal-create-user";
+import { ModalLoginUser } from "@/components/screens/login/modal-login-user";
 import { Colors } from "@/constants/theme";
 import { useUserStore } from "@/stores/useUserStore";
-import { StatusBar } from "expo-status-bar";
 
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
     useState(false);
   const [isLoginUserModalVisible, setIsLoginUserModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -44,7 +43,7 @@ export default function Login() {
     Inter_700Bold,
   });
 
-  const { user, setUser } = useUserStore();
+  const { user, loading } = useUserStore();
 
   const HERO_DATA = [
     {
@@ -73,28 +72,16 @@ export default function Login() {
     },
   ];
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-  //     if (!firebaseUser) {
-  //       setUser(null);
-  //     } else {
-  //       setUser({
-  //         uid: firebaseUser.uid,
-  //         email: firebaseUser.email || "",
-  //         displayName: firebaseUser.displayName || "",
-  //       });
-  //     }
-
-  //     setLoading(false);
-  //   });
-
-  //   return unsubscribe; // limpa o listener quando desmonta
-  // }, []);
+  const prevUser = useRef(user);
 
   useEffect(() => {
-    if (!loading && user) {
-      router.push("/(tabs)/dashboard");
+    if (!loading && !prevUser.current && user) {
+      setIsCreateUserModalVisible(false);
+      setIsLoginUserModalVisible(false);
+
+      router.replace("/(tabs)/dashboard");
     }
+    prevUser.current = user;
   }, [user, loading]);
 
   function onSetCreateUserVisible(value: boolean) {
@@ -192,7 +179,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.black
+    backgroundColor: Colors.black,
   },
   header: {
     backgroundColor: Colors.black,

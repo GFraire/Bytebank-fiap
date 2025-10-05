@@ -1,5 +1,5 @@
-import { Summary } from "@/components/dashboard/summary";
 import { Header } from "@/components/header";
+import { Summary } from "@/components/screens/dashboard/summary";
 import { Colors } from "@/constants/theme";
 import { ITransaction, useTransaction } from "@/hooks/useTransaction";
 import { useUserStore } from "@/stores/useUserStore";
