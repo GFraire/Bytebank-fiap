@@ -1,11 +1,40 @@
 import { Header } from "@/components/header";
 import TransactionForm from "@/components/screens/add-transaction/transaction-form";
 import { Colors } from "@/constants/theme";
+import { useFocusEffect } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet } from "react-native";
+import { useCallback } from "react";
+import { Dimensions, StyleSheet } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
 export default function AddTransaction() {
+  const translateY = useSharedValue(SCREEN_HEIGHT); // começa fora da tela
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  useFocusEffect(
+    useCallback(() => {
+      // Ao entrar na tela: anima de baixo pra cima
+      translateY.value = withTiming(0, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      });
+
+      // Ao sair da tela: anima para baixo de novo
+      return () => {
+        translateY.value = withTiming(SCREEN_HEIGHT, {
+          duration: 100,
+          easing: Easing.in(Easing.cubic),
+        });
+      };
+    }, [])
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -16,7 +45,9 @@ export default function AddTransaction() {
         title="Nova transação"
       />
 
-      <TransactionForm />
+      <Animated.View style={[animatedStyle, { flex: 1 }]}>
+        <TransactionForm />
+      </Animated.View>
     </SafeAreaView>
   );
 }

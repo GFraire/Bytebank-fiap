@@ -1,7 +1,14 @@
 import { Colors } from "@/constants/theme";
-import { ITransaction } from "@/hooks/useTransaction";
-import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useUserStore } from "@/stores/useUserStore";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useMemo } from "react";
+import { StyleSheet, Text } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import {
   VictoryAxis,
   VictoryBar,
@@ -11,16 +18,14 @@ import {
   VictoryTooltip,
 } from "victory-native";
 
-interface ITransactionChartProps {
-  transactions: ITransaction[];
-}
+export function TransactionChart() {
+  const { transactions } = useUserStore();
 
-export function TransactionChart({ transactions }: ITransactionChartProps) {
   // Processa os dados
   const chartData = useMemo(() => {
     const monthlyData: Record<string, { income: number; expense: number }> = {};
 
-    transactions.forEach((t) => {
+    transactions?.forEach((t) => {
       const date = new Date(t.date);
       const yearShort = String(date.getFullYear()).slice(-2); // pega os dois últimos dígitos
       const monthYear = `${date.getMonth() + 1}/${yearShort}`;
@@ -32,21 +37,18 @@ export function TransactionChart({ transactions }: ITransactionChartProps) {
       else monthlyData[monthYear].expense += t.amount;
     });
 
-    // Converte para array e adiciona data real para ordenar
     const monthlyArray = Object.entries(monthlyData).map(
       ([monthYear, data]) => {
         const [month, year] = monthYear.split("/").map(Number);
-
         return {
           monthYear,
           income: data.income,
           expense: data.expense,
-          date: new Date(year, month - 1, 1), // primeiro dia do mês
+          date: new Date(year, month - 1, 1),
         };
       }
     );
 
-    // Ordena por data
     monthlyArray.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     const labels = monthlyArray.map((d) => d.monthYear);
@@ -67,14 +69,37 @@ export function TransactionChart({ transactions }: ITransactionChartProps) {
   }, [transactions]);
 
   const { labels, incomeData, expenseData } = chartData;
-
   const maxY = Math.max(
     ...incomeData.map((d) => d.y),
     ...expenseData.map((d) => d.y)
   );
 
+  const translateY = useSharedValue(1200);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  useFocusEffect(
+    useCallback(() => {
+      // Entra de baixo pra cima
+      translateY.value = withTiming(0, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      });
+
+      return () => {
+        // Volta pra baixo ao sair
+        translateY.value = withTiming(300, {
+          duration: 100,
+          easing: Easing.in(Easing.cubic),
+        });
+      };
+    }, [])
+  );
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedStyle]}>
       <Text style={styles.title}>Receitas vs Despesas</Text>
 
       <VictoryChart
@@ -112,9 +137,10 @@ export function TransactionChart({ transactions }: ITransactionChartProps) {
           ]}
         />
       </VictoryChart>
-    </View>
+    </Animated.View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,

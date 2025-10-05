@@ -23,6 +23,7 @@ interface IUserData {
 interface AuthState {
   user: IUserData | null;
   loading: boolean;
+  transactions: ITransaction[] | null;
   setUser: (user: IUserData | null) => void;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
@@ -34,11 +35,13 @@ interface AuthState {
   addTransaction: (
     transaction: ITransaction
   ) => Promise<{ error: string | null }>;
+  getTransactions: () => Promise<{ error: string | null }>;
 }
 
 export const useUserStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
+  transactions: null,
   setUser: (user) => set({ user }),
   login: async (email, password) => {
     const { getUserSummary } = useUserSummary();
@@ -138,10 +141,33 @@ export const useUserStore = create<AuthState>((set) => ({
       balance: newBalance,
     });
 
-    // Atualiza o estado local da store
     if (userSummary) {
-      set({ user: { ...state.user!, ...userSummary } });
+      // Atualiza o estado local da store
+      useUserStore.setState((prevState) => ({
+        user: { ...prevState.user!, ...userSummary },
+        // Atualiza o array de transactions
+        transactions: prevState.transactions
+          ? [...prevState.transactions, transaction]
+          : [transaction],
+      }));
     }
+
+    return { error: null };
+  },
+  getTransactions: async () => {
+    const { getTransactionsByUser } = useTransaction();
+
+    const state = useUserStore.getState();
+    const uid = state.user?.uid;
+    if (!uid) return { error: "Usuário não autenticado." };
+
+    const { transactions, error } = await getTransactionsByUser(uid);
+
+    if (!transactions) {
+      return { error };
+    }
+
+    set({ transactions });
 
     return { error: null };
   },
