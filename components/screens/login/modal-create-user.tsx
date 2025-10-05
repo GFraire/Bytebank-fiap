@@ -1,13 +1,16 @@
 import { InputField } from "@/components/screens/login/input-field";
+import { ToastItem } from "@/components/toast";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
+  Keyboard,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,8 +29,13 @@ export function ModalCreateUser({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [toast, setToast] = useState<{
+    id: number;
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
 
-  const { signUp } = useUserStore();
+  const { loading, signUp } = useUserStore();
 
   const isFormValid = name && email && password;
 
@@ -44,13 +52,21 @@ export function ModalCreateUser({
   }
 
   async function handleSignUp() {
+    Keyboard.dismiss();
+
     const { error: singUpError } = await signUp(email, password, name);
 
     if (singUpError) {
-      console.log("Erro ao registrar:", singUpError);
-      // Exibir toast/alert
+      setToast({
+        id: Date.now(),
+        message: "Erro ao registrar: " + singUpError,
+        type: "error",
+      });
+
       return;
     }
+
+    setVisible(false);
 
     router.push("/(tabs)/dashboard");
   }
@@ -63,50 +79,61 @@ export function ModalCreateUser({
       onRequestClose={() => setVisible(false)}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <Pressable style={styles.close} onPress={() => setVisible(false)}>
-            <Ionicons name="close" size={24} color="#999" />
-          </Pressable>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          style={{ width: "100%" }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.modalContent}>
+            {toast && <ToastItem toast={toast} onHide={() => setToast(null)} />}
 
-          <Image
-            style={styles.image}
-            source={require("@/assets/images/laptop-woman.png")}
-          />
+            <Pressable style={styles.close} onPress={() => setVisible(false)}>
+              <Ionicons name="close" size={24} color="#999" />
+            </Pressable>
 
-          <Text style={styles.title}>
-            Preencha os campos abaixo para criar sua conta corrente!
-          </Text>
-
-          <View style={styles.form}>
-            <InputField
-              label="Nome"
-              placeholder="Digite seu nome completo"
-              onChangeText={handleNameChange}
+            <Image
+              style={styles.image}
+              source={require("@/assets/images/laptop-woman.png")}
             />
 
-            <InputField
-              label="E-mail"
-              placeholder="Digite seu e-mail"
-              type="email"
-              onChangeText={handleEmailChange}
-            />
+            <Text style={styles.title}>
+              Preencha os campos abaixo para criar sua conta corrente!
+            </Text>
 
-            <InputField
-              label="Senha"
-              placeholder="Digite sua senha"
-              type="password"
-              onChangeText={handlePasswordChange}
-            />
+            <View style={styles.form}>
+              <InputField
+                label="Nome"
+                placeholder="Digite seu nome completo"
+                onChangeText={handleNameChange}
+              />
+              <InputField
+                label="E-mail"
+                placeholder="Digite seu e-mail"
+                type="email"
+                onChangeText={handleEmailChange}
+              />
+              <InputField
+                label="Senha"
+                placeholder="Digite sua senha"
+                type="password"
+                onChangeText={handlePasswordChange}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
+              disabled={!isFormValid || loading}
+              onPress={handleSignUp}
+            >
+              <Text style={styles.buttonText}>Criar conta</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={[styles.button, !isFormValid && styles.buttonDisabled]}
-            disabled={!isFormValid}
-            onPress={handleSignUp}
-          >
-            <Text style={styles.buttonText}>Criar conta</Text>
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -120,7 +147,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    width: "85%",
+    width: "90%",
     padding: 32,
     backgroundColor: Colors["gray-100"],
     borderRadius: 8,

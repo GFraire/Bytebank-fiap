@@ -1,5 +1,5 @@
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useMemo } from "react";
 import { StyleSheet, Text } from "react-native";

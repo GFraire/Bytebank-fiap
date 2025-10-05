@@ -6,7 +6,7 @@ import {
   TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
 } from "@/hooks/useTransaction";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import React, { useState } from "react";
 import {
   ScrollView,

@@ -2,7 +2,7 @@ import { Header } from "@/components/header";
 import { Summary } from "@/components/screens/dashboard/summary";
 import { TransactionChart } from "@/components/screens/dashboard/transaction-chart";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";

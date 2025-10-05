@@ -1,13 +1,16 @@
 import { InputField } from "@/components/screens/login/input-field";
+import { ToastItem } from "@/components/toast";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
+  Keyboard,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,8 +25,13 @@ interface ModalLoginUserProps {
 export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [toast, setToast] = useState<{
+    id: number;
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
 
-  const { login } = useUserStore();
+  const { loading, login } = useUserStore();
 
   const isFormValid = email && password;
 
@@ -36,14 +44,22 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
   }
 
   async function handleSignIn() {
+    Keyboard.dismiss();
+
     const { error } = await login(email, password);
 
     if (error) {
-      console.log("Erro ao logar:", error);
-      // Exibir toast/alert
+      setToast({
+        id: Date.now(),
+        message: "Erro ao logar: " + error,
+        type: "error",
+      });
+
       return;
     }
 
+    setVisible(false);
+    
     router.push("/(tabs)/dashboard");
   }
 
@@ -55,44 +71,60 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
       onRequestClose={() => setVisible(false)}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <Pressable style={styles.close} onPress={() => setVisible(false)}>
-            <Ionicons name="close" size={24} color="#999" />
-          </Pressable>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          style={{ width: "100%" }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.modalContent}>
+            {toast && <ToastItem toast={toast} onHide={() => setToast(null)} />}
 
-          <Image
-            style={styles.image}
-            source={require("@/assets/images/laptop-woman.png")}
-          />
+            <Pressable style={styles.close} onPress={() => setVisible(false)}>
+              <Ionicons name="close" size={24} color="#999" />
+            </Pressable>
 
-          <Text style={styles.title}>
-            Preencha os campos abaixo para logar na sua conta!
-          </Text>
-
-          <View style={styles.form}>
-            <InputField
-              label="E-mail"
-              placeholder="Digite seu e-mail"
-              type="email"
-              onChangeText={handleEmailChange}
+            <Image
+              style={styles.image}
+              source={require("@/assets/images/laptop-woman.png")}
             />
 
-            <InputField
-              label="Senha"
-              placeholder="Digite sua senha"
-              type="password"
-              onChangeText={handlePasswordChange}
-            />
+            <Text style={styles.title}>
+              Preencha os campos abaixo para logar na sua conta!
+            </Text>
 
-            <TouchableOpacity
-              style={[styles.button, !isFormValid && styles.buttonDisabled]}
-              disabled={!isFormValid}
-              onPress={handleSignIn}
-            >
-              <Text style={styles.buttonText}>Acessar conta</Text>
-            </TouchableOpacity>
+            <View style={styles.form}>
+              <InputField
+                label="E-mail"
+                placeholder="Digite seu e-mail"
+                type="email"
+                onChangeText={handleEmailChange}
+              />
+
+              <InputField
+                label="Senha"
+                placeholder="Digite sua senha"
+                type="password"
+                onChangeText={handlePasswordChange}
+              />
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  (!isFormValid || loading) && styles.buttonDisabled,
+                ]}
+                disabled={!isFormValid || loading}
+                onPress={handleSignIn}
+              >
+                <Text style={styles.buttonText}>Acessar conta</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -106,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    width: "85%",
+    width: "90%",
     padding: 32,
     backgroundColor: Colors["gray-100"],
     borderRadius: 8,

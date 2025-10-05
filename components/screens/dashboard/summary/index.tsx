@@ -1,6 +1,6 @@
 import { IconDollar } from "@/components/icons";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";

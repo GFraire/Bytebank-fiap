@@ -30,7 +30,7 @@ import { HeroItem } from "@/components/screens/login/hero-item";
 import { ModalCreateUser } from "@/components/screens/login/modal-create-user";
 import { ModalLoginUser } from "@/components/screens/login/modal-login-user";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/userStore";
 
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
@@ -72,17 +72,19 @@ export default function Login() {
     },
   ];
 
-  const prevUser = useRef(user);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (!loading && !prevUser.current && user) {
+    if (!isFirstRender.current) return;
+
+    if (!loading && user) {
       setIsCreateUserModalVisible(false);
       setIsLoginUserModalVisible(false);
-
       router.replace("/(tabs)/dashboard");
     }
-    prevUser.current = user;
-  }, [user, loading]);
+
+    isFirstRender.current = false;
+  }, []); // array de dependências vazio -> só roda no mount
 
   function onSetCreateUserVisible(value: boolean) {
     setIsCreateUserModalVisible(value);
@@ -96,7 +98,7 @@ export default function Login() {
     return null;
   }
 
-  if (loading) {
+  if (loading && isFirstRender.current) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />

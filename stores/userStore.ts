@@ -44,6 +44,8 @@ export const useUserStore = create<AuthState>((set) => ({
   transactions: null,
   setUser: (user) => set({ user }),
   login: async (email, password) => {
+    set({ loading: true });
+
     const { getUserSummary } = useUserSummary();
 
     try {
@@ -55,8 +57,10 @@ export const useUserStore = create<AuthState>((set) => ({
 
       const userSummaryResult = await getUserSummary(userCredential.user.uid);
 
-      if (!userSummaryResult.userSummary)
+      if (!userSummaryResult.userSummary) {
+        set({ loading: false });
         return { error: userSummaryResult.error };
+      }
 
       const user: IUserData = {
         uid: userCredential.user.uid,
@@ -67,14 +71,17 @@ export const useUserStore = create<AuthState>((set) => ({
         totalIncome: userSummaryResult.userSummary.totalIncome,
       };
 
-      set({ user });
+      set({ user, loading: false });
 
       return { error: null };
     } catch (error: any) {
+      set({ loading: false });
       return { error: error.message };
     }
   },
   signUp: async (email, password, name) => {
+    set({ loading: true });
+
     const { addUserSummary } = useUserSummary();
 
     try {
@@ -90,7 +97,10 @@ export const useUserStore = create<AuthState>((set) => ({
 
       const userSummaryResult = await addUserSummary(userCredential.user.uid);
 
-      if (userSummaryResult.error) return { error: userSummaryResult.error };
+      if (userSummaryResult.error) {
+        set({ loading: false });
+        return { error: userSummaryResult.error };
+      }
 
       const user: IUserData = {
         uid: userCredential.user.uid,
@@ -101,10 +111,12 @@ export const useUserStore = create<AuthState>((set) => ({
         totalIncome: 0,
       };
 
-      set({ user });
+      set({ user, loading: false });
 
       return { error: null };
     } catch (error: any) {
+      set({ loading: false });
+
       return { error: error.message };
     }
   },
