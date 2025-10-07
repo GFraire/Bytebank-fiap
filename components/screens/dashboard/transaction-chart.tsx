@@ -19,77 +19,58 @@ import {
 } from "victory-native";
 
 export function TransactionChart() {
-  const { transactions } = useUserStore();
+  const { monthlySummaries } = useUserStore();
 
-  // Processa os dados
   const chartData = useMemo(() => {
-    const monthlyData: Record<string, { income: number; expense: number }> = {};
+    if (!monthlySummaries || monthlySummaries.length === 0)
+      return { labels: [], incomeData: [], expenseData: [] };
 
-    transactions?.forEach((t) => {
-      const date = new Date(t.date);
-      const yearShort = String(date.getFullYear()).slice(-2); // pega os dois últimos dígitos
-      const monthYear = `${date.getMonth() + 1}/${yearShort}`;
-
-      if (!monthlyData[monthYear])
-        monthlyData[monthYear] = { income: 0, expense: 0 };
-
-      if (t.flow === "income") monthlyData[monthYear].income += t.amount;
-      else monthlyData[monthYear].expense += t.amount;
-    });
-
-    const monthlyArray = Object.entries(monthlyData).map(
-      ([monthYear, data]) => {
-        const [month, year] = monthYear.split("/").map(Number);
-        return {
-          monthYear,
-          income: data.income,
-          expense: data.expense,
-          date: new Date(year, month - 1, 1),
-        };
-      }
+    // Ordena pelo mês (YYYY-MM)
+    const sorted = [...monthlySummaries].sort((a, b) =>
+      a.month.localeCompare(b.month)
     );
 
-    monthlyArray.sort((a, b) => a.date.getTime() - b.date.getTime());
+    const labels = sorted.map((s) => {
+      const [year, month] = s.month.split("-");
+      const yearShort = year.slice(2);
+      return `${Number(month)}/${yearShort}`;
+    });
 
-    const labels = monthlyArray.map((d) => d.monthYear);
-
-    const incomeData = monthlyArray.map((d, i) => ({
+    const incomeData = sorted.map((s, i) => ({
       x: i + 1,
-      y: d.income,
-      label: `R$ ${d.income}`,
+      y: s.totalIncome,
+      label: `R$ ${s.totalIncome.toFixed(2)}`,
     }));
 
-    const expenseData = monthlyArray.map((d, i) => ({
+    const expenseData = sorted.map((s, i) => ({
       x: i + 1,
-      y: d.expense,
-      label: `R$ ${d.expense}`,
+      y: s.totalExpense,
+      label: `R$ ${s.totalExpense.toFixed(2)}`,
     }));
 
     return { labels, incomeData, expenseData };
-  }, [transactions]);
+  }, [monthlySummaries]);
 
   const { labels, incomeData, expenseData } = chartData;
   const maxY = Math.max(
+    0,
     ...incomeData.map((d) => d.y),
     ...expenseData.map((d) => d.y)
   );
 
+  // ✨ Animação de entrada
   const translateY = useSharedValue(1200);
-
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
 
   useFocusEffect(
     useCallback(() => {
-      // Entra de baixo pra cima
       translateY.value = withTiming(0, {
         duration: 400,
         easing: Easing.out(Easing.cubic),
       });
-
       return () => {
-        // Volta pra baixo ao sair
         translateY.value = withTiming(300, {
           duration: 100,
           easing: Easing.in(Easing.cubic),
@@ -102,41 +83,45 @@ export function TransactionChart() {
     <Animated.View style={[styles.container, animatedStyle]}>
       <Text style={styles.title}>Receitas vs Despesas</Text>
 
-      <VictoryChart
-        domainPadding={{ x: 20 }}
-        domain={{ y: [0, maxY * 1.1] }}
-        padding={{ top: 20, bottom: 28, left: 60, right: 60 }}
-      >
-        <VictoryAxis
-          tickValues={incomeData.map((_, i) => i + 1)}
-          tickFormat={labels}
-        />
-        <VictoryAxis dependentAxis tickFormat={(x) => `${x}`} />
-
-        <VictoryGroup offset={15} colorScale={["#47A138", "#FF5031"]}>
-          <VictoryBar
-            data={incomeData}
-            barWidth={10}
-            labelComponent={<VictoryTooltip />}
+      {labels.length === 0 ? (
+        <Text style={styles.emptyText}>Sem dados para exibir</Text>
+      ) : (
+        <VictoryChart
+          domainPadding={{ x: 20 }}
+          domain={{ y: [0, maxY * 1.1] }}
+          padding={{ top: 20, bottom: 28, left: 60, right: 60 }}
+        >
+          <VictoryAxis
+            tickValues={incomeData.map((_, i) => i + 1)}
+            tickFormat={labels}
           />
-          <VictoryBar
-            data={expenseData}
-            barWidth={10}
-            labelComponent={<VictoryTooltip />}
-          />
-        </VictoryGroup>
+          <VictoryAxis dependentAxis tickFormat={(x) => `${x}`} />
 
-        <VictoryLegend
-          x={80}
-          y={0}
-          orientation="horizontal"
-          gutter={20}
-          data={[
-            { name: "Receitas", symbol: { fill: "#47A138" } },
-            { name: "Despesas", symbol: { fill: "#FF5031" } },
-          ]}
-        />
-      </VictoryChart>
+          <VictoryGroup offset={15} colorScale={["#47A138", "#FF5031"]}>
+            <VictoryBar
+              data={incomeData}
+              barWidth={10}
+              labelComponent={<VictoryTooltip />}
+            />
+            <VictoryBar
+              data={expenseData}
+              barWidth={10}
+              labelComponent={<VictoryTooltip />}
+            />
+          </VictoryGroup>
+
+          <VictoryLegend
+            x={80}
+            y={0}
+            orientation="horizontal"
+            gutter={20}
+            data={[
+              { name: "Receitas", symbol: { fill: "#47A138" } },
+              { name: "Despesas", symbol: { fill: "#FF5031" } },
+            ]}
+          />
+        </VictoryChart>
+      )}
     </Animated.View>
   );
 }
@@ -152,5 +137,11 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "Inter_700Bold",
     marginBottom: 5,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: Colors["gray-300"],
+    fontFamily: "Inter_500Medium",
+    marginVertical: 20,
   },
 });

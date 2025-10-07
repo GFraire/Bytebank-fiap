@@ -2,11 +2,14 @@ import { db } from "@/firebaseConfig";
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   QueryDocumentSnapshot,
+  setDoc,
   startAfter,
   updateDoc,
   where,
@@ -22,6 +25,13 @@ export interface ITransaction {
   category: (typeof TRANSACTION_CATEGORIES)[number]["value"];
   createdAt: string; // ISO string
   date: string; // ISO string
+}
+
+export interface IMonthlySummary {
+  userUid: string;
+  month: string; // "YYYY-MM"
+  totalIncome: number;
+  totalExpense: number;
 }
 
 export const TRANSACTION_TYPES: { label: string; value: string }[] = [
@@ -52,12 +62,13 @@ export function useTransaction() {
   ): Promise<{ transaction: ITransaction; error: string | null }> {
     try {
       const docRef = await addDoc(collection(db, "transactions"), transaction);
+      const newTransaction = { ...transaction, uid: docRef.id };
 
-      await updateDoc(docRef, {
-        uid: docRef.id,
-      });
+      await updateDoc(docRef, { uid: docRef.id });
 
-      return { transaction: { ...transaction, uid: docRef.id }, error: null };
+      await updateMonthlySummary(newTransaction);
+
+      return { transaction: newTransaction, error: null };
     } catch (error: any) {
       return { transaction: { ...transaction, uid: "" }, error: error.message };
     }
@@ -96,5 +107,44 @@ export function useTransaction() {
     }
   }
 
-  return { addTransaction, getTransactionsByUser };
+  async function updateMonthlySummary(transaction: ITransaction) {
+    const date = new Date(transaction.date);
+    const monthKey = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}`; // Ex: "2025-10"
+    const summaryDocRef = doc(
+      db,
+      "monthly-summary",
+      `${transaction.userUid}_${monthKey}`
+    );
+
+    const summarySnap = await getDoc(summaryDocRef);
+    const data = summarySnap.data() || {
+      userUid: transaction.userUid,
+      month: monthKey,
+      totalIncome: 0,
+      totalExpense: 0,
+    };
+
+    if (transaction.flow === "income") {
+      data.totalIncome += transaction.amount;
+    } else {
+      data.totalExpense += transaction.amount;
+    }
+
+    await setDoc(summaryDocRef, data, { merge: true });
+  }
+
+  async function getMonthlySummaries(userUid: string) {
+    const q = query(
+      collection(db, "monthly-summary"),
+      where("userUid", "==", userUid),
+      orderBy("month", "asc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => doc.data() as IMonthlySummary);
+  }
+
+  return { addTransaction, getTransactionsByUser, getMonthlySummaries };
 }

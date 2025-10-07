@@ -1,5 +1,9 @@
 import { auth } from "@/firebaseConfig";
-import { ITransaction, useTransaction } from "@/hooks/useTransaction";
+import {
+  IMonthlySummary,
+  ITransaction,
+  useTransaction,
+} from "@/hooks/useTransaction";
 import { useUserSummary } from "@/hooks/useUserSummary";
 import { router } from "expo-router";
 import {
@@ -26,6 +30,8 @@ interface AuthState {
   transactions: ITransaction[] | null;
   lastTransactionDoc?: any;
   loadingTransactions: boolean;
+  monthlySummaries: IMonthlySummary[] | null;
+  loadingMonthlySummaries: boolean;
   setUser: (user: IUserData | null) => void;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
@@ -39,6 +45,7 @@ interface AuthState {
   ) => Promise<{ error: string | null }>;
   getTransactions: () => Promise<{ error: string | null }>;
   loadMoreTransactions: () => Promise<void>;
+  getMonthlySummaries: () => Promise<{ error: string | null }>;
 }
 
 export const useUserStore = create<AuthState>((set) => ({
@@ -47,6 +54,8 @@ export const useUserStore = create<AuthState>((set) => ({
   transactions: null,
   lastTransactionDoc: undefined,
   loadingTransactions: false,
+  monthlySummaries: null,
+  loadingMonthlySummaries: false,
 
   setUser: (user) => set({ user }),
 
@@ -61,6 +70,7 @@ export const useUserStore = create<AuthState>((set) => ({
         email,
         password
       );
+
       const userSummaryResult = await getUserSummary(userCredential.user.uid);
 
       if (!userSummaryResult.userSummary) {
@@ -77,10 +87,14 @@ export const useUserStore = create<AuthState>((set) => ({
         totalIncome: userSummaryResult.userSummary.totalIncome,
       };
 
+      await useUserStore.getState().getMonthlySummaries();
+
       set({ user, loading: false });
+
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
+
       return { error: error.message };
     }
   },
@@ -115,15 +129,18 @@ export const useUserStore = create<AuthState>((set) => ({
       };
 
       set({ user, loading: false });
+
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
+
       return { error: error.message };
     }
   },
 
   addTransaction: async (transaction) => {
     set({ loading: true });
+
     const { addTransaction } = useTransaction();
     const { updateUserSummary } = useUserSummary();
 
@@ -173,6 +190,9 @@ export const useUserStore = create<AuthState>((set) => ({
       }));
     }
 
+    // Atualiza os summaries após adicionar uma nova transação
+    await useUserStore.getState().getMonthlySummaries();
+
     return { error: null };
   },
 
@@ -190,11 +210,9 @@ export const useUserStore = create<AuthState>((set) => ({
       uid,
       10
     );
-    
+
     if (error) {
       set({ loadingTransactions: false });
-      console.log(error);
-      
       return { error };
     }
 
@@ -221,7 +239,6 @@ export const useUserStore = create<AuthState>((set) => ({
       error,
     } = await getTransactionsByUser(uid, 10, state.lastTransactionDoc);
 
-
     if (!error) {
       set({
         transactions: state.transactions
@@ -232,6 +249,28 @@ export const useUserStore = create<AuthState>((set) => ({
       });
     } else {
       set({ loadingTransactions: false });
+    }
+  },
+
+  getMonthlySummaries: async () => {
+    const { getMonthlySummaries } = useTransaction();
+
+    const state = useUserStore.getState();
+    const uid = state.user?.uid;
+    if (!uid) return { error: "Usuário não autenticado." };
+
+    set({ loadingMonthlySummaries: true });
+
+    try {
+      const summaries = await getMonthlySummaries(uid);
+
+      set({ monthlySummaries: summaries, loadingMonthlySummaries: false });
+
+      return { error: null };
+    } catch (error: any) {
+      set({ loadingMonthlySummaries: false });
+
+      return { error: error.message };
     }
   },
 
@@ -267,4 +306,6 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     },
     loading: false,
   });
+
+  await useUserStore.getState().getMonthlySummaries();
 });

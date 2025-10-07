@@ -1,42 +1,38 @@
 import { Colors } from "@/constants/theme";
-import { useToastStore } from "@/stores/toastStore";
+import { ITransaction } from "@/hooks/useTransaction";
 import { useUserStore } from "@/stores/userStore";
-import { useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
-  View
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { ListItem } from "./list-item";
 
+interface IListProps {
+  transactions: ITransaction[] | null;
+  onFilterPress: () => void; // adiciona callback para abrir modal
+}
 
-export function List() {
-  const {
-    transactions,
-    getTransactions,
-    loadMoreTransactions,
-    loadingTransactions,
-  } = useUserStore();
-
-  const { addToast } = useToastStore();
-
-  useEffect(() => {
-    async function fetchData() {
-      const { error } = await getTransactions();
-
-      if (error) {
-        addToast("Erro ao carregar transações " + error, "error");
-      }
-    }
-
-    fetchData()
-  }, []);
+export function List({ transactions, onFilterPress }: IListProps) {
+  const { loadMoreTransactions, loadingTransactions } = useUserStore();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Transações</Text>
+      {/* Header da lista com título e ícone */}
+      <View style={styles.listHeader}>
+        <Text style={styles.title}>Transações</Text>
+
+        <TouchableOpacity
+          onPress={onFilterPress}
+          style={styles.filterIconButton}
+        >
+          <Ionicons name="filter-outline" size={24} color={Colors["gray-600"]} />
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={transactions}
@@ -54,6 +50,7 @@ export function List() {
             Nenhuma transação encontrada
           </Text>
         }
+        contentContainerStyle={{ padding: 0 }}
       />
     </View>
   );
@@ -67,9 +64,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
   },
+  listHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16
+  },
   title: {
-    padding: 16,
     fontSize: 18,
     fontFamily: "Inter_600SemiBold",
+  },
+  filterIconButton: {
+    padding: 4,
+    backgroundColor: Colors["gray-300"],
+    borderRadius: 8
   },
 });
