@@ -43,6 +43,9 @@ interface AuthState {
   addTransaction: (
     transaction: Omit<ITransaction, "uid">
   ) => Promise<{ error: string | null }>;
+  deleteTransaction: (
+    transaction: ITransaction
+  ) => Promise<{ error: string | null }>;
   getTransactions: () => Promise<{ error: string | null }>;
   loadMoreTransactions: () => Promise<void>;
   getMonthlySummaries: () => Promise<{ error: string | null }>;
@@ -94,7 +97,6 @@ export const useUserStore = create<AuthState>((set) => ({
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
-
       return { error: error.message };
     }
   },
@@ -129,11 +131,9 @@ export const useUserStore = create<AuthState>((set) => ({
       };
 
       set({ user, loading: false });
-
       return { error: null };
     } catch (error: any) {
       set({ loading: false });
-
       return { error: error.message };
     }
   },
@@ -185,12 +185,63 @@ export const useUserStore = create<AuthState>((set) => ({
         user: { ...prevState.user!, ...userSummary },
         loading: false,
         transactions: prevState.transactions
-          ? [...prevState.transactions, newTransaction]
+          ? [newTransaction, ...prevState.transactions]
           : [newTransaction],
       }));
     }
 
-    // Atualiza os summaries após adicionar uma nova transação
+    await useUserStore.getState().getMonthlySummaries();
+    return { error: null };
+  },
+
+  deleteTransaction: async (transaction) => {
+    set({ loading: true });
+
+    const { deleteTransaction } = useTransaction();
+    const { updateUserSummary } = useUserSummary();
+
+    const state = useUserStore.getState();
+    const user = state.user;
+    if (!user) return { error: "Usuário não autenticado." };
+
+    const { error: deleteError } = await deleteTransaction(transaction);
+
+    if (deleteError) {
+      set({ loading: false });
+      return { error: deleteError };
+    }
+
+    let newIncome = user.totalIncome;
+    let newExpense = user.totalExpense;
+
+    if (transaction.flow === "income") newIncome -= Number(transaction.amount);
+    if (transaction.flow === "expense")
+      newExpense -= Number(transaction.amount);
+
+    const newBalance = newIncome - newExpense;
+
+    await updateUserSummary(user.uid, {
+      totalIncome: newIncome,
+      totalExpense: newExpense,
+      balance: newBalance,
+    });
+
+    // Remove transação localmente
+    const updatedTransactions = state.transactions?.filter(
+      (t) => t.uid !== transaction.uid
+    );
+
+    set({
+      transactions: updatedTransactions || [],
+      loading: false,
+      user: {
+        ...user,
+        totalIncome: newIncome,
+        totalExpense: newExpense,
+        balance: newBalance,
+      },
+    });
+
     await useUserStore.getState().getMonthlySummaries();
 
     return { error: null };
@@ -265,11 +316,9 @@ export const useUserStore = create<AuthState>((set) => ({
       const summaries = await getMonthlySummaries(uid);
 
       set({ monthlySummaries: summaries, loadingMonthlySummaries: false });
-
       return { error: null };
     } catch (error: any) {
       set({ loadingMonthlySummaries: false });
-
       return { error: error.message };
     }
   },

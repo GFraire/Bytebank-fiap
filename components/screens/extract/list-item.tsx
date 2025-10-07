@@ -1,7 +1,20 @@
 import { Colors } from "@/constants/theme";
 import { ITransaction } from "@/hooks/useTransaction";
+import { useToastStore } from "@/stores/toastStore";
+import { useUserStore } from "@/stores/userStore";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  findNodeHandle,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
+} from "react-native";
+import { DeleteConfirmModal } from "./delete-confirm-modal";
+import { EditUserModal } from "./edit-user-modal";
+import { OptionsMenu } from "./options-menu";
 
 interface IListItemProps {
   transaction: ITransaction;
@@ -9,7 +22,6 @@ interface IListItemProps {
 
 export function ListItem({ transaction }: IListItemProps) {
   const color = transaction.flow === "income" ? Colors.green : Colors.error;
-
   const icon = transaction.flow === "income" ? "arrow-up" : "arrow-down";
 
   const formattedValue = new Intl.NumberFormat("pt-BR", {
@@ -17,10 +29,38 @@ export function ListItem({ transaction }: IListItemProps) {
     currency: "BRL",
   }).format(transaction.amount);
 
-  const date = new Date(transaction.date);
-  const formattedDate = date.toLocaleDateString("pt-BR");
-
+  const formattedDate = new Date(transaction.date).toLocaleDateString("pt-BR");
   const signal = transaction.flow === "income" ? "+" : "-";
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+  const iconRef = useRef<View>(null);
+
+  const { deleteTransaction } = useUserStore();
+  const { addToast } = useToastStore();
+
+  function openMenu() {
+    if (iconRef.current) {
+      const handle = findNodeHandle(iconRef.current);
+      if (handle) {
+        UIManager.measure(handle, (_, __, width, height, pageX, pageY) => {
+          setMenuPosition({ x: pageX + width, y: pageY + height });
+          setMenuVisible(true);
+        });
+      }
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    const { error } = await deleteTransaction(transaction);
+
+    if (error) addToast("Erro ao deletar: " + error, "error");
+
+    setDeleteVisible(false);
+  };
 
   return (
     <View style={styles.itemContainer}>
@@ -42,12 +82,42 @@ export function ListItem({ transaction }: IListItemProps) {
           {formattedValue}
         </Text>
 
-        <Ionicons
-          name="ellipsis-vertical"
-          size={18}
-          color={Colors["gray-500"]}
-        />
+        <TouchableOpacity ref={iconRef} onPress={openMenu}>
+          <Ionicons
+            name="ellipsis-vertical"
+            size={18}
+            color={Colors["gray-500"]}
+          />
+        </TouchableOpacity>
       </View>
+
+      {/* Menu de opções */}
+      <OptionsMenu
+        visible={menuVisible}
+        position={menuPosition}
+        onClose={() => setMenuVisible(false)}
+        onEdit={() => {
+          setMenuVisible(false);
+          setEditVisible(true);
+        }}
+        onDelete={() => {
+          setMenuVisible(false);
+          setDeleteVisible(true);
+        }}
+      />
+
+      {/* Modal de edição */}
+      <EditUserModal
+        visible={editVisible}
+        onClose={() => setEditVisible(false)}
+      />
+
+      {/* Modal de exclusão */}
+      <DeleteConfirmModal
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        onConfirm={handleDeleteConfirm}
+      />
     </View>
   );
 }

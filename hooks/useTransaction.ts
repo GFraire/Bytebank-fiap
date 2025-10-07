@@ -2,6 +2,7 @@ import { db } from "@/firebaseConfig";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -65,7 +66,6 @@ export function useTransaction() {
       const newTransaction = { ...transaction, uid: docRef.id };
 
       await updateDoc(docRef, { uid: docRef.id });
-
       await updateMonthlySummary(newTransaction);
 
       return { transaction: newTransaction, error: null };
@@ -74,15 +74,12 @@ export function useTransaction() {
     }
   }
 
+  // ✅ Busca transações
   async function getTransactionsByUser(
     userUid: string,
     pageSize = 10,
     startAfterDoc?: QueryDocumentSnapshot
-  ): Promise<{
-    transactions: ITransaction[];
-    lastDoc?: QueryDocumentSnapshot;
-    error: string | null;
-  }> {
+  ) {
     try {
       let q = query(
         collection(db, "transactions"),
@@ -91,22 +88,20 @@ export function useTransaction() {
         limit(pageSize)
       );
 
-      if (startAfterDoc) {
-        q = query(q, startAfter(startAfterDoc));
-      }
+      if (startAfterDoc) q = query(q, startAfter(startAfterDoc));
 
       const querySnapshot = await getDocs(q);
       const transactions = querySnapshot.docs.map(
         (doc) => ({ uid: doc.id, ...doc.data() } as ITransaction)
       );
       const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-
       return { transactions, lastDoc, error: null };
     } catch (error: any) {
       return { transactions: [], error: error.message };
     }
   }
 
+  // ✅ Atualiza o resumo mensal (somando)
   async function updateMonthlySummary(transaction: ITransaction) {
     const date = new Date(transaction.date);
     const monthKey = `${date.getFullYear()}-${String(
@@ -126,13 +121,49 @@ export function useTransaction() {
       totalExpense: 0,
     };
 
-    if (transaction.flow === "income") {
-      data.totalIncome += transaction.amount;
-    } else {
-      data.totalExpense += transaction.amount;
-    }
+    if (transaction.flow === "income") data.totalIncome += transaction.amount;
+    else data.totalExpense += transaction.amount;
 
     await setDoc(summaryDocRef, data, { merge: true });
+  }
+
+  async function updateMonthlySummaryOnDelete(transaction: ITransaction) {
+    const date = new Date(transaction.date);
+    const monthKey = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}`;
+    const summaryDocRef = doc(
+      db,
+      "monthly-summary",
+      `${transaction.userUid}_${monthKey}`
+    );
+
+    const summarySnap = await getDoc(summaryDocRef);
+
+    if (!summarySnap.exists()) return; // não há resumo para atualizar
+
+    const data = summarySnap.data() as IMonthlySummary;
+
+    if (transaction.flow === "income")
+      data.totalIncome = Math.max(0, data.totalIncome - transaction.amount);
+    else
+      data.totalExpense = Math.max(0, data.totalExpense - transaction.amount);
+
+    await setDoc(summaryDocRef, data, { merge: true });
+  }
+
+  async function deleteTransaction(transaction: ITransaction) {
+    try {
+      const docRef = doc(db, "transactions", transaction.uid);
+
+      await deleteDoc(docRef);
+
+      await updateMonthlySummaryOnDelete(transaction);
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
   }
 
   async function getMonthlySummaries(userUid: string) {
@@ -146,5 +177,10 @@ export function useTransaction() {
     return querySnapshot.docs.map((doc) => doc.data() as IMonthlySummary);
   }
 
-  return { addTransaction, getTransactionsByUser, getMonthlySummaries };
+  return {
+    addTransaction,
+    deleteTransaction,
+    getTransactionsByUser,
+    getMonthlySummaries,
+  };
 }
