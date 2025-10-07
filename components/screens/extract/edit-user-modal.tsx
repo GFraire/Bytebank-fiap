@@ -71,15 +71,23 @@ export function EditTransactionModal({
       const result = await DocumentPicker.getDocumentAsync({
         type: ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
+        multiple: true,
       });
 
-      if (result.type === "success") {
-        const response = await fetch(result.uri);
-        const blob = await response.blob();
-        setFiles((prev) => [
-          ...prev,
-          { name: result.name, uri: result.uri, blob },
-        ]);
+      if (!result.canceled && result.assets.length > 0) {
+        const newFiles = await Promise.all(
+          result.assets.map(async (asset) => {
+            const response = await fetch(asset.uri);
+            const blob = await response.blob();
+            return {
+              name: asset.name,
+              uri: asset.uri,
+              blob,
+            };
+          })
+        );
+
+        setFiles((prev) => [...prev, ...newFiles]);
       }
     } catch (err) {
       console.log("Erro ao selecionar arquivo:", err);
