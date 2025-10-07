@@ -74,7 +74,6 @@ export function useTransaction() {
     }
   }
 
-  // ✅ Busca transações
   async function getTransactionsByUser(
     userUid: string,
     pageSize = 10,
@@ -101,7 +100,85 @@ export function useTransaction() {
     }
   }
 
-  // ✅ Atualiza o resumo mensal (somando)
+  async function updateTransaction(transaction: ITransaction) {
+    try {
+      const transactionRef = doc(db, "transactions", transaction.uid);
+
+      // Pega a transação antiga
+      const oldSnap = await getDoc(transactionRef);
+      const oldTransaction = oldSnap.data() as ITransaction | undefined;
+
+      if (!oldTransaction) throw new Error("Transação não encontrada");
+
+      // Cria um objeto sem o 'uid' para enviar ao updateDoc
+      const { uid, ...transactionData } = transaction;
+
+      // Atualiza a transação
+      await updateDoc(transactionRef, transactionData);
+
+      // Atualiza monthly-summary: remove valores antigos
+      const oldDate = new Date(oldTransaction.date);
+      const oldMonthKey = `${oldDate.getFullYear()}-${String(
+        oldDate.getMonth() + 1
+      ).padStart(2, "0")}`;
+      const oldSummaryRef = doc(
+        db,
+        "monthly-summary",
+        `${oldTransaction.userUid}_${oldMonthKey}`
+      );
+      const oldSummarySnap = await getDoc(oldSummaryRef);
+      const oldSummaryData = oldSummarySnap.data() as
+        | IMonthlySummary
+        | undefined;
+
+      if (oldSummaryData) {
+        if (oldTransaction.flow === "income")
+          oldSummaryData.totalIncome -= oldTransaction.amount;
+        else oldSummaryData.totalExpense -= oldTransaction.amount;
+
+        await setDoc(oldSummaryRef, oldSummaryData, { merge: true });
+      }
+
+      // Adiciona valores da nova transação no summary correto
+      const newDate = new Date(transaction.date);
+      const newMonthKey = `${newDate.getFullYear()}-${String(
+        newDate.getMonth() + 1
+      ).padStart(2, "0")}`;
+      const newSummaryRef = doc(
+        db,
+        "monthly-summary",
+        `${transaction.userUid}_${newMonthKey}`
+      );
+      const newSummarySnap = await getDoc(newSummaryRef);
+      const newSummaryData = newSummarySnap.data() as
+        | IMonthlySummary
+        | {
+            userUid: string;
+            month: string;
+            totalIncome: number;
+            totalExpense: number;
+          }
+        | undefined;
+
+      const summaryToUpdate = newSummaryData || {
+        userUid: transaction.userUid,
+        month: newMonthKey,
+        totalIncome: 0,
+        totalExpense: 0,
+      };
+
+      if (transaction.flow === "income")
+        summaryToUpdate.totalIncome += transaction.amount;
+      else summaryToUpdate.totalExpense += transaction.amount;
+
+      await setDoc(newSummaryRef, summaryToUpdate, { merge: true });
+
+      return { transaction, error: null };
+    } catch (error: any) {
+      return { transaction: null, error: error.message };
+    }
+  }
+
   async function updateMonthlySummary(transaction: ITransaction) {
     const date = new Date(transaction.date);
     const monthKey = `${date.getFullYear()}-${String(
@@ -182,5 +259,6 @@ export function useTransaction() {
     deleteTransaction,
     getTransactionsByUser,
     getMonthlySummaries,
+    updateTransaction
   };
 }

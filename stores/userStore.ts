@@ -46,6 +46,9 @@ interface AuthState {
   deleteTransaction: (
     transaction: ITransaction
   ) => Promise<{ error: string | null }>;
+  updateTransaction: (
+    transaction: ITransaction
+  ) => Promise<{ error: string | null }>;
   getTransactions: () => Promise<{ error: string | null }>;
   loadMoreTransactions: () => Promise<void>;
   getMonthlySummaries: () => Promise<{ error: string | null }>;
@@ -191,6 +194,86 @@ export const useUserStore = create<AuthState>((set) => ({
     }
 
     await useUserStore.getState().getMonthlySummaries();
+    return { error: null };
+  },
+
+  updateTransaction: async (transaction: ITransaction) => {
+    const { updateTransaction } = useTransaction();
+    const { updateUserSummary } = useUserSummary();
+
+    const state = useUserStore.getState();
+    const user = state.user;
+    if (!user) return { error: "Usuário não autenticado." };
+
+    set({ loading: true });
+
+    // Encontra a transação antiga no estado
+    const oldTransaction = state.transactions?.find(
+      (t) => t.uid === transaction.uid
+    );
+
+    if (!oldTransaction) {
+      set({ loading: false });
+      return { error: "Transação não encontrada." };
+    }
+
+    // Atualiza no Firebase
+    const { transaction: updatedTransaction, error: updateError } =
+      await updateTransaction(transaction);
+
+    if (updateError) {
+      set({ loading: false });
+      return { error: updateError };
+    }
+
+    // Calcula as diferenças para atualizar o resumo do usuário
+    let newIncome = user.totalIncome;
+    let newExpense = user.totalExpense;
+
+    // Subtrai os valores antigos
+    if (oldTransaction.flow === "income") newIncome -= oldTransaction.amount;
+    if (oldTransaction.flow === "expense") newExpense -= oldTransaction.amount;
+
+    if (!updatedTransaction) {
+      set({ loading: false });
+
+      return { error: "Transação a ser atualizada não encontrada" };
+    }
+
+    // Soma os valores novos
+    if (updatedTransaction.flow === "income")
+      newIncome += updatedTransaction.amount;
+    if (updatedTransaction.flow === "expense")
+      newExpense += updatedTransaction.amount;
+
+    const newBalance = newIncome - newExpense;
+
+    // Atualiza o resumo do usuário
+    await updateUserSummary(user.uid, {
+      totalIncome: newIncome,
+      totalExpense: newExpense,
+      balance: newBalance,
+    });
+
+    // Atualiza a transação localmente
+    const updatedTransactions = state.transactions?.map((t) =>
+      t.uid === updatedTransaction.uid ? updatedTransaction : t
+    );
+
+    set({
+      transactions: updatedTransactions || [],
+      user: {
+        ...user,
+        totalIncome: newIncome,
+        totalExpense: newExpense,
+        balance: newBalance,
+      },
+      loading: false,
+    });
+
+    // Atualiza os monthly summaries
+    await useUserStore.getState().getMonthlySummaries();
+
     return { error: null };
   },
 

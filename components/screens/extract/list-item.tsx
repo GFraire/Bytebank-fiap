@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { DeleteConfirmModal } from "./delete-confirm-modal";
-import { EditUserModal } from "./edit-user-modal";
+import { EditTransactionModal } from "./edit-user-modal";
 import { OptionsMenu } from "./options-menu";
 
 interface IListItemProps {
@@ -107,9 +107,10 @@ export function ListItem({ transaction }: IListItemProps) {
       />
 
       {/* Modal de edição */}
-      <EditUserModal
+      <EditTransactionModal
         visible={editVisible}
         onClose={() => setEditVisible(false)}
+        transaction={transaction}
       />
 
       {/* Modal de exclusão */}
