@@ -14,6 +14,7 @@ interface OptionsMenuProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onViewFiles?: () => void;
 }
 
 export function OptionsMenu({
@@ -22,6 +23,7 @@ export function OptionsMenu({
   onClose,
   onEdit,
   onDelete,
+  onViewFiles
 }: OptionsMenuProps) {
   // Posição ajustada para não sair da tela
   const screenHeight = Dimensions.get("window").height;
@@ -35,7 +37,11 @@ export function OptionsMenu({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableOpacity style={styles.overlay} onPress={onClose} activeOpacity={1}>
+      <TouchableOpacity
+        style={styles.overlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
         <View
           style={[
             styles.menuContainer,
@@ -48,9 +54,18 @@ export function OptionsMenu({
           <TouchableOpacity style={styles.menuItem} onPress={onEdit}>
             <Text style={styles.menuText}>Editar</Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} onPress={onDelete}>
-            <Text style={[styles.menuText, { color: Colors.error }]}>Excluir</Text>
+            <Text style={[styles.menuText, { color: Colors.error }]}>
+              Excluir
+            </Text>
           </TouchableOpacity>
+
+          {onViewFiles && (
+            <TouchableOpacity style={styles.menuItem} onPress={onViewFiles}>
+              <Text style={styles.menuText}>Ver arquivos</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     </Modal>

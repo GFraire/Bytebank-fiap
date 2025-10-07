@@ -36,7 +36,7 @@ export function EditTransactionModal({
   const [description, setDescription] = useState(transaction.description);
   const [amount, setAmount] = useState(transaction.amount.toString());
   const [type, setType] = useState(transaction.type);
-  const [flow, setFlow] = useState(transaction.flow);
+  const [flow, setFlow] = useState<string>(transaction.flow);
   const [category, setCategory] = useState(transaction.category);
   const [date, setDate] = useState(transaction.date);
   const [files, setFiles] = useState<
@@ -51,7 +51,7 @@ export function EditTransactionModal({
   useEffect(() => {
     if (visible) {
       setDescription(transaction.description);
-      setAmount(transaction.amount.toString());
+      setAmount(formatBRL(transaction.amount));
       setType(transaction.type);
       setFlow(transaction.flow);
       setCategory(transaction.category);
@@ -64,6 +64,13 @@ export function EditTransactionModal({
   const isFormFilled = [description, amount, type, flow, category, date].every(
     Boolean
   );
+
+  function formatBRL(amount: number) {
+    return amount.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
 
   // Selecionar arquivos
   const pickFiles = async () => {
@@ -120,11 +127,9 @@ export function EditTransactionModal({
 
     try {
       const numericAmount = Number(amount.replace(/\./g, "").replace(",", "."));
-      const uploadedFiles: string[] = [];
 
       for (const file of files) {
         const url = await uploadFileToFirebase(file);
-        uploadedFiles.push(url);
       }
 
       // Atualiza a transação no store
@@ -136,7 +141,6 @@ export function EditTransactionModal({
         type,
         category,
         date: new Date(date).toISOString(),
-        files: uploadedFiles,
       });
 
       if (error) {

@@ -408,7 +408,7 @@ export const useUserStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await signOut(auth);
-    set({ user: null });
+    set({ user: null, transactions: null, monthlySummaries: null });
     router.replace("/login");
   },
 }));
@@ -423,7 +423,12 @@ onAuthStateChanged(auth, async (firebaseUser) => {
   const userSummaryResult = await getUserSummary(firebaseUser.uid);
 
   if (!userSummaryResult.userSummary) {
-    useUserStore.setState({ user: null, loading: false });
+    useUserStore.setState({
+      user: null,
+      loading: false,
+      monthlySummaries: null,
+      transactions: null,
+    });
     return;
   }
 

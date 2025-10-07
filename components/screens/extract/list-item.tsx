@@ -15,6 +15,7 @@ import {
 import { DeleteConfirmModal } from "./delete-confirm-modal";
 import { EditTransactionModal } from "./edit-user-modal";
 import { OptionsMenu } from "./options-menu";
+import { ViewFilesModal } from "./view-files-modal";
 
 interface IListItemProps {
   transaction: ITransaction;
@@ -35,6 +36,7 @@ export function ListItem({ transaction }: IListItemProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [viewFilesVisible, setViewFilesVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
   const iconRef = useRef<View>(null);
@@ -104,6 +106,10 @@ export function ListItem({ transaction }: IListItemProps) {
           setMenuVisible(false);
           setDeleteVisible(true);
         }}
+        onViewFiles={() => {
+          setMenuVisible(false);
+          setViewFilesVisible(true);
+        }}
       />
 
       {/* Modal de edição */}
@@ -118,6 +124,12 @@ export function ListItem({ transaction }: IListItemProps) {
         visible={deleteVisible}
         onClose={() => setDeleteVisible(false)}
         onConfirm={handleDeleteConfirm}
+      />
+
+      <ViewFilesModal
+        visible={viewFilesVisible}
+        onClose={() => setViewFilesVisible(false)}
+        transactionUid={transaction.uid}
       />
     </View>
   );
