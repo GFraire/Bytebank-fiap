@@ -1,50 +1,83 @@
-# Welcome to your Expo app 👋
+# Descrição
+Este projeto utiliza **Expo** e integra com **Firebase** para gerenciamento de transações e uploads de arquivos.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Pré-requisitos
 
-## Get started
+- Node.js instalado (versão 22 ou superior recomendada)
+- npm
+- Expo CLI (`npm install -g expo-cli`)
+- Conta Firebase configurada
 
-1. Install dependencies
+## Como rodar o projeto
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Instale as dependências do projeto:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Copie o arquivo de exemplo de variáveis de ambiente e configure suas chaves do Firebase:
+```bash
+cp .env.example .env.local
+```
 
-## Learn more
+3. Para iniciar o projeto em modo de desenvolvimento:
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Estrutura de Pastas
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+/
+├── .env.example
+├── .env.local
+├── .gitignore
+├── app.json
+├── eslint.config.js
+├── expo-env.d.ts
+├── firebaseConfig.ts
+├── package.json
+├── README.md
+├── tsconfig.json
+├── .expo/
+│   ├── devices.json
+│   ├── README.md
+│   ├── types/
+│   └── web/
+├── .vscode/
+│   ├── extensions.json
+│   └── settings.json
+├── app/
+│   ├── _layout.tsx
+│   ├── login.tsx
+│   └── (tabs)/
+│       ├── _layout.tsx
+│       ├── add-transaction.tsx
+│       ├── dashboard.tsx
+│       └── extract.tsx
+├── assets/
+│   └── images/
+├── components/
+│   ├── base-button/
+│   ├── date-field/
+│   ├── header/
+│   ├── icons/
+│   ├── picker-field/
+│   ├── screens/
+│       ├── add-transaction.tsx
+│       ├── dashboard.tsx
+│       ├── extract.tsx
+│       └── login.tsx
+│   ├── text-field/
+│   └── toast/
+├── constants/
+│   └── theme.ts
+├── hooks/
+│   ├── useTransaction.ts
+│   └── useUserSummary.ts
+├── stores/
+│   ├── toastStore.ts
+│   └── userStore.ts
+└── types/
+    └── firebase-auth.d.ts
+```

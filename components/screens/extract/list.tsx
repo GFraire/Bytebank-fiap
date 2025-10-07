@@ -20,6 +20,10 @@ interface IListProps {
 export function List({ transactions, onFilterPress }: IListProps) {
   const { loadMoreTransactions, loadingTransactions } = useUserStore();
 
+  const sortedTransactions = transactions?.slice().sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
   return (
     <View style={styles.container}>
       {/* Header da lista com título e ícone */}
@@ -30,19 +34,26 @@ export function List({ transactions, onFilterPress }: IListProps) {
           onPress={onFilterPress}
           style={styles.filterIconButton}
         >
-          <Ionicons name="filter-outline" size={24} color={Colors["gray-600"]} />
+          <Ionicons
+            name="filter-outline"
+            size={24}
+            color={Colors["gray-600"]}
+          />
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={transactions}
+        data={sortedTransactions}
         keyExtractor={(item) => item.uid}
         renderItem={({ item }) => <ListItem transaction={item} />}
         onEndReached={loadMoreTransactions}
         onEndReachedThreshold={0.1}
         ListFooterComponent={() =>
           loadingTransactions ? (
-            <ActivityIndicator color={Colors.primary} size="small" />
+            <View style={styles.loader}>
+              <ActivityIndicator color={Colors.primary} size="small" />
+              <Text>Carregando...</Text>
+            </View>
           ) : null
         }
         ListEmptyComponent={
@@ -68,7 +79,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16
+    padding: 16,
   },
   title: {
     fontSize: 18,
@@ -77,6 +88,12 @@ const styles = StyleSheet.create({
   filterIconButton: {
     padding: 4,
     backgroundColor: Colors["gray-300"],
-    borderRadius: 8
+    borderRadius: 8,
+  },
+  loader: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 8,
   },
 });

@@ -342,7 +342,7 @@ export const useUserStore = create<AuthState>((set) => ({
 
     const { transactions, lastDoc, error } = await getTransactionsByUser(
       uid,
-      10
+      6
     );
 
     if (error) {
@@ -371,7 +371,7 @@ export const useUserStore = create<AuthState>((set) => ({
       transactions: newTransactions,
       lastDoc,
       error,
-    } = await getTransactionsByUser(uid, 10, state.lastTransactionDoc);
+    } = await getTransactionsByUser(uid, 1, state.lastTransactionDoc);
 
     if (!error) {
       set({

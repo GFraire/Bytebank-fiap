@@ -76,7 +76,7 @@ export function useTransaction() {
 
   async function getTransactionsByUser(
     userUid: string,
-    pageSize = 10,
+    pageSize = 6,
     startAfterDoc?: QueryDocumentSnapshot
   ) {
     try {
