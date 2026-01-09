@@ -3,10 +3,7 @@ import DateField from "@/components/date-field";
 import PickerField from "@/components/picker-field";
 import TextField from "@/components/text-field";
 import { Colors } from "@/constants/theme";
-import {
-  TRANSACTION_CATEGORIES,
-  TRANSACTION_TYPES,
-} from "@/hooks/useTransaction";
+import { TRANSACTION_CATEGORIES, TRANSACTION_TYPES } from "@/constants/transactions";
 import { useToastStore } from "@/stores/toastStore";
 import { useUserStore } from "@/stores/userStore";
 import React, { useState } from "react";

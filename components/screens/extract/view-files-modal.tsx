@@ -1,11 +1,8 @@
 import { Colors } from "@/constants/theme";
 import {
-  deleteObject,
-  getDownloadURL,
-  getStorage,
-  listAll,
-  ref,
-} from "firebase/storage";
+  deleteFileAttachmentUseCase,
+  listTransactionFilesUseCase,
+} from "@/infra/container/file-attatchment";
 import React, { useEffect, useState } from "react";
 import {
   Linking,
@@ -38,33 +35,21 @@ export function ViewFilesModal({
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const storage = getStorage();
-      const listRef = ref(storage, `transactions/${transactionUid}`);
-      const res = await listAll(listRef);
+      const files = await listTransactionFilesUseCase.execute(transactionUid);
 
-      const filesData = await Promise.all(
-        res.items.map(async (item) => {
-          const url = await getDownloadURL(item);
-          return { name: item.name, url };
-        })
-      );
-
-      setFiles(filesData);
+      setFiles(files);
     } catch (err) {
       console.log("Erro ao buscar arquivos:", err);
       setFiles([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteFile = async (fileName: string) => {
     try {
-      const storage = getStorage();
-      const fileRef = ref(
-        storage,
-        `transactions/${transactionUid}/${fileName}`
-      );
-      await deleteObject(fileRef);
+      await deleteFileAttachmentUseCase.execute(transactionUid, fileName);
+
       setFiles((prev) => prev.filter((f) => f.name !== fileName));
     } catch (err) {
       console.log("Erro ao deletar arquivo:", err);

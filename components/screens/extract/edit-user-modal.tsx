@@ -1,17 +1,20 @@
+import { FileAttachmentDTO } from "@/application/dtos/fille-attatchment-dto";
+import { TransactionDTO } from "@/application/dtos/transaction-dto";
 import { BaseButton } from "@/components/base-button";
 import DateField from "@/components/date-field";
 import PickerField from "@/components/picker-field";
 import TextField from "@/components/text-field";
 import { Colors } from "@/constants/theme";
 import {
-  ITransaction,
   TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
-} from "@/hooks/useTransaction";
+} from "@/constants/transactions";
+import {
+  pickFilesUseCase,
+  uploadFileAttachmentUseCase,
+} from "@/infra/container/file-attatchment";
 import { useToastStore } from "@/stores/toastStore";
 import { useUserStore } from "@/stores/userStore";
-import * as DocumentPicker from "expo-document-picker";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import {
   Modal,
@@ -25,7 +28,7 @@ import {
 interface EditTransactionModalProps {
   visible: boolean;
   onClose: () => void;
-  transaction: ITransaction;
+  transaction: TransactionDTO;
 }
 
 export function EditTransactionModal({
@@ -39,9 +42,7 @@ export function EditTransactionModal({
   const [flow, setFlow] = useState<string>(transaction.flow);
   const [category, setCategory] = useState(transaction.category);
   const [date, setDate] = useState(transaction.date);
-  const [files, setFiles] = useState<
-    { name: string; uri: string; blob: Blob }[]
-  >([]);
+  const [files, setFiles] = useState<FileAttachmentDTO[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -75,25 +76,9 @@ export function EditTransactionModal({
   // Selecionar arquivos
   const pickFiles = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/*", "application/pdf"],
-        copyToCacheDirectory: true,
-        multiple: true,
-      });
+      const newFiles = await pickFilesUseCase.execute();
 
-      if (!result.canceled && result.assets.length > 0) {
-        const newFiles = await Promise.all(
-          result.assets.map(async (asset) => {
-            const response = await fetch(asset.uri);
-            const blob = await response.blob();
-            return {
-              name: asset.name,
-              uri: asset.uri,
-              blob,
-            };
-          })
-        );
-
+      if (newFiles.length > 0) {
         setFiles((prev) => [...prev, ...newFiles]);
       }
     } catch (err) {
@@ -102,14 +87,8 @@ export function EditTransactionModal({
     }
   };
 
-  const uploadFileToFirebase = async (file: (typeof files)[0]) => {
-    const storage = getStorage();
-    const fileRef = ref(
-      storage,
-      `transactions/${transaction.uid}/${file.name}`
-    );
-    await uploadBytes(fileRef, file.blob);
-    return getDownloadURL(fileRef);
+  const uploadFileToFirebase = async (file: FileAttachmentDTO) => {
+    return await uploadFileAttachmentUseCase.execute(transaction.uid, file);
   };
 
   const handleSubmit = async () => {
@@ -129,7 +108,7 @@ export function EditTransactionModal({
       const numericAmount = Number(amount.replace(/\./g, "").replace(",", "."));
 
       for (const file of files) {
-        const url = await uploadFileToFirebase(file);
+        await uploadFileToFirebase(file);
       }
 
       // Atualiza a transação no store
