@@ -1,10 +1,10 @@
 import { TransactionDTO } from "@/application/dtos/transaction-dto";
-import { Header } from "@/components/header";
-import { List } from "@/components/screens/extract/list";
-import { TransactionFilterModal } from "@/components/screens/extract/transaction-filter";
-import { Colors } from "@/constants/theme";
-import { useToastStore } from "@/stores/toastStore";
-import { useTransactionsStore } from "@/stores/transactions-store";
+import { Header } from "@/ui/components/header";
+import { List } from "@/ui/components/screens/extract/list";
+import { TransactionFilterModal } from "@/ui/components/screens/extract/transaction-filter";
+import { Colors } from "@/ui/constants/theme";
+import { useToastStore } from "@/ui/stores/toastStore";
+import { useTransactionsStore } from "@/ui/stores/transactions-store";
 import { useFocusEffect } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";

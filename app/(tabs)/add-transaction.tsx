@@ -1,6 +1,6 @@
-import { Header } from "@/components/header";
-import TransactionForm from "@/components/screens/add-transaction/transaction-form";
-import { Colors } from "@/constants/theme";
+import { Header } from "@/ui/components/header";
+import TransactionForm from "@/ui/components/screens/add-transaction/transaction-form";
+import { Colors } from "@/ui/constants/theme";
 import { useFocusEffect } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useCallback } from "react";

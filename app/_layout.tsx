@@ -1,6 +1,6 @@
-import { ToastContainer } from "@/components/toast/toast-container";
-import { useAuthListener } from "@/hooks/useAuthListener";
-import { useAuthStore } from "@/stores/auth-user-store";
+import { ToastContainer } from "@/ui/components/toast/toast-container";
+import { useAuthListener } from "@/ui/hooks/useAuthListener";
+import { useAuthStore } from "@/ui/stores/auth-user-store";
 import { router, Stack } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";

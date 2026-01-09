@@ -1,7 +1,7 @@
 import {
   TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
-} from "@/constants/transactions";
+} from "@/ui/constants/transactions";
 
 export type TransactionFlow = "income" | "expense";
 

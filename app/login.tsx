@@ -22,12 +22,12 @@ import {
   IconMoney,
   IconPresent,
   IconStar,
-} from "@/components/icons";
-import { Footer } from "@/components/screens/login/footer";
-import { HeroItem } from "@/components/screens/login/hero-item";
-import { ModalCreateUser } from "@/components/screens/login/modal-create-user";
-import { ModalLoginUser } from "@/components/screens/login/modal-login-user";
-import { Colors } from "@/constants/theme";
+} from "@/ui/components/icons";
+import { Footer } from "@/ui/components/screens/login/footer";
+import { HeroItem } from "@/ui/components/screens/login/hero-item";
+import { ModalCreateUser } from "@/ui/components/screens/login/modal-create-user";
+import { ModalLoginUser } from "@/ui/components/screens/login/modal-login-user";
+import { Colors } from "@/ui/constants/theme";
 
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =

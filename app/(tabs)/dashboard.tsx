@@ -1,7 +1,7 @@
-import { Header } from "@/components/header";
-import { Summary } from "@/components/screens/dashboard/summary";
-import { TransactionChart } from "@/components/screens/dashboard/transaction-chart";
-import { Colors } from "@/constants/theme";
+import { Header } from "@/ui/components/header";
+import { Summary } from "@/ui/components/screens/dashboard/summary";
+import { TransactionChart } from "@/ui/components/screens/dashboard/transaction-chart";
+import { Colors } from "@/ui/constants/theme";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
