@@ -5,11 +5,9 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -30,7 +28,6 @@ import { HeroItem } from "@/components/screens/login/hero-item";
 import { ModalCreateUser } from "@/components/screens/login/modal-create-user";
 import { ModalLoginUser } from "@/components/screens/login/modal-login-user";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/userStore";
 
 export default function Login() {
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
@@ -42,8 +39,6 @@ export default function Login() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
-
-  const { user, loading } = useUserStore();
 
   const HERO_DATA = [
     {
@@ -72,38 +67,12 @@ export default function Login() {
     },
   ];
 
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (!isFirstRender.current) return;
-
-    if (!loading && user) {
-      setIsCreateUserModalVisible(false);
-      setIsLoginUserModalVisible(false);
-      router.replace("/(tabs)/dashboard");
-    }
-
-    isFirstRender.current = false;
-  }, []); // array de dependências vazio -> só roda no mount
-
   function onSetCreateUserVisible(value: boolean) {
     setIsCreateUserModalVisible(value);
   }
 
   function onSetLoginUserVisible(value: boolean) {
     setIsLoginUserModalVisible(value);
-  }
-
-  if (!fontsLoaded) {
-    return null;
-  }
-
-  if (loading && isFirstRender.current) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
   }
 
   return (

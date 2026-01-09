@@ -24,6 +24,7 @@ export default function Card({ type, icon, title, value }: ICardProps) {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
   return (

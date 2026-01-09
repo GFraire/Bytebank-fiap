@@ -1,7 +1,8 @@
 import { InputField } from "@/components/screens/login/input-field";
 import { ToastItem } from "@/components/toast";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/userStore";
+import { useAuthStore } from "@/stores/auth-user-store";
+import { useSummariesStore } from "@/stores/monthly-summaries-store";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -31,7 +32,12 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
     type: "success" | "error" | "info";
   } | null>(null);
 
-  const { loading, login } = useUserStore();
+  const { loading, login } = useAuthStore();
+  const {
+    loading: summariesLoading,
+    fetch: fetchSummaries,
+    summaries,
+  } = useSummariesStore();
 
   const isFormValid = email && password;
 
@@ -47,6 +53,7 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
     Keyboard.dismiss();
 
     const { error } = await login(email, password);
+    const { error: fetchSummariesError } = await fetchSummaries();
 
     if (error) {
       setToast({
@@ -58,8 +65,18 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
       return;
     }
 
+    if (fetchSummariesError) {
+      setToast({
+        id: Date.now(),
+        message: "Erro ao buscar resumo mensal: " + fetchSummariesError,
+        type: "error",
+      });
+
+      return;
+    }
+
     setVisible(false);
-    
+
     router.push("/(tabs)/dashboard");
   }
 
@@ -115,9 +132,10 @@ export function ModalLoginUser({ isVisible, setVisible }: ModalLoginUserProps) {
               <TouchableOpacity
                 style={[
                   styles.button,
-                  (!isFormValid || loading) && styles.buttonDisabled,
+                  (!isFormValid || loading || summariesLoading) &&
+                    styles.buttonDisabled,
                 ]}
-                disabled={!isFormValid || loading}
+                disabled={!isFormValid || loading || summariesLoading}
                 onPress={handleSignIn}
               >
                 <Text style={styles.buttonText}>Acessar conta</Text>

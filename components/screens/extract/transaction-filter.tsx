@@ -76,7 +76,7 @@ export function TransactionFilterModal({
         break;
       case "thisYear":
         dateRange = {
-          start: new Date(today.getFullYear(), 1, 1),
+          start: new Date(today.getFullYear(), 0, 1),
           end: today,
         };
         break;

@@ -1,7 +1,8 @@
+import { TransactionDTO } from "@/application/dtos/transaction-dto";
 import { Colors } from "@/constants/theme";
-import { ITransaction } from "@/hooks/useTransaction";
+import { useAuthStore } from "@/stores/auth-user-store";
 import { useToastStore } from "@/stores/toastStore";
-import { useUserStore } from "@/stores/userStore";
+import { useTransactionsStore } from "@/stores/transactions-store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
@@ -18,7 +19,7 @@ import { OptionsMenu } from "./options-menu";
 import { ViewFilesModal } from "./view-files-modal";
 
 interface IListItemProps {
-  transaction: ITransaction;
+  transaction: TransactionDTO;
 }
 
 export function ListItem({ transaction }: IListItemProps) {
@@ -41,8 +42,9 @@ export function ListItem({ transaction }: IListItemProps) {
 
   const iconRef = useRef<View>(null);
 
-  const { deleteTransaction } = useUserStore();
+  const { remove } = useTransactionsStore();
   const { addToast } = useToastStore();
+  const { updateSummary } = useAuthStore();
 
   function openMenu() {
     if (iconRef.current) {
@@ -57,7 +59,7 @@ export function ListItem({ transaction }: IListItemProps) {
   }
 
   const handleDeleteConfirm = async () => {
-    const { error } = await deleteTransaction(transaction);
+    const { error } = await remove(transaction);
 
     if (error) addToast("Erro ao deletar: " + error, "error");
 

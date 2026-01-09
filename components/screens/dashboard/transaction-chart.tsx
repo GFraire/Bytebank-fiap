@@ -1,5 +1,5 @@
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/userStore";
+import { useSummariesStore } from "@/stores/monthly-summaries-store";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
@@ -19,14 +19,14 @@ import {
 } from "victory-native";
 
 export function TransactionChart() {
-  const { monthlySummaries } = useUserStore();
+  const { summaries } = useSummariesStore();
 
   const chartData = useMemo(() => {
-    if (!monthlySummaries || monthlySummaries.length === 0)
+    if (!summaries || summaries.length === 0)
       return { labels: [], incomeData: [], expenseData: [] };
 
     // Ordena pelo mês (YYYY-MM)
-    const sorted = [...monthlySummaries].sort((a, b) =>
+    const sorted = [...summaries].sort((a, b) =>
       a.month.localeCompare(b.month)
     );
 
@@ -49,7 +49,7 @@ export function TransactionChart() {
     }));
 
     return { labels, incomeData, expenseData };
-  }, [monthlySummaries]);
+  }, [summaries]);
 
   const { labels, incomeData, expenseData } = chartData;
   const maxY = Math.max(

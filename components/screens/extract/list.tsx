@@ -1,6 +1,6 @@
+import { TransactionDTO } from "@/application/dtos/transaction-dto";
 import { Colors } from "@/constants/theme";
-import { ITransaction } from "@/hooks/useTransaction";
-import { useUserStore } from "@/stores/userStore";
+import { useTransactionsStore } from "@/stores/transactions-store";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
@@ -13,12 +13,12 @@ import {
 import { ListItem } from "./list-item";
 
 interface IListProps {
-  transactions: ITransaction[] | null;
+  transactions: TransactionDTO[] | null;
   onFilterPress: () => void; // adiciona callback para abrir modal
 }
 
 export function List({ transactions, onFilterPress }: IListProps) {
-  const { loadMoreTransactions, loadingTransactions } = useUserStore();
+  const { loadMore, loading } = useTransactionsStore();
 
   const sortedTransactions = transactions?.slice().sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -46,10 +46,10 @@ export function List({ transactions, onFilterPress }: IListProps) {
         data={sortedTransactions}
         keyExtractor={(item) => item.uid}
         renderItem={({ item }) => <ListItem transaction={item} />}
-        onEndReached={loadMoreTransactions}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={() =>
-          loadingTransactions ? (
+          loading ? (
             <View style={styles.loader}>
               <ActivityIndicator color={Colors.primary} size="small" />
               <Text>Carregando...</Text>

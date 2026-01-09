@@ -1,7 +1,7 @@
 import { InputField } from "@/components/screens/login/input-field";
 import { ToastItem } from "@/components/toast";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/userStore";
+import { useAuthStore } from "@/stores/auth-user-store";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -35,7 +35,7 @@ export function ModalCreateUser({
     type: "success" | "error" | "info";
   } | null>(null);
 
-  const { loading, signUp } = useUserStore();
+  const { loading, signUp } = useAuthStore();
 
   const isFormValid = name && email && password;
 

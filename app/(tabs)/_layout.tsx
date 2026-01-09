@@ -7,6 +7,7 @@ export default function RootLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        lazy: true,
         tabBarActiveTintColor: Colors.primary,
         tabBarStyle: { height: 70, paddingTop: 4 },
         tabBarLabelStyle: { fontSize: 14 },

@@ -14,7 +14,7 @@ import {
   uploadFileAttachmentUseCase,
 } from "@/infra/container/file-attatchment";
 import { useToastStore } from "@/stores/toastStore";
-import { useUserStore } from "@/stores/userStore";
+import { useTransactionsStore } from "@/stores/transactions-store";
 import React, { useEffect, useState } from "react";
 import {
   Modal,
@@ -47,7 +47,7 @@ export function EditTransactionModal({
   const [loading, setLoading] = useState(false);
 
   const { addToast } = useToastStore();
-  const { updateTransaction } = useUserStore();
+  const { update } = useTransactionsStore();
 
   useEffect(() => {
     if (visible) {
@@ -112,7 +112,7 @@ export function EditTransactionModal({
       }
 
       // Atualiza a transação no store
-      const { error } = await updateTransaction({
+      const { error } = await update({
         ...transaction,
         description,
         amount: numericAmount,

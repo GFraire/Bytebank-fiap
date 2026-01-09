@@ -5,11 +5,11 @@ import { UserSummaryRepository } from "@/domain/repositories/user-summary-reposi
 export class GetUserSummaryUseCase {
   constructor(private userSummaryRepository: UserSummaryRepository) {}
 
-  async execute(uid: string): Promise<UserSummaryDTO> {
+  async execute(uid: string): Promise<UserSummaryDTO | null> {
     const summary = await this.userSummaryRepository.getByUser(uid);
 
     if (!summary) {
-      throw new Error("Nenhum resumo encontrado para este usuário");
+      return null;
     }
 
     return UserSummaryMapper.toDTO(summary);

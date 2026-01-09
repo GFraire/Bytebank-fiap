@@ -6,14 +6,9 @@ import {
   deleteTransactionUseCase,
   getMonthlySummariesUseCase,
   getTransactionsByUserUseCase,
-  loginUserUseCase,
-  logoutUserUseCase,
-  signUpUserUseCase,
   updateTransactionUseCase
 } from "@/infra/container";
-import { router } from "expo-router";
 import { create } from "zustand";
-
 
 interface AuthState {
   user: UserDTO | null;
@@ -24,13 +19,7 @@ interface AuthState {
   monthlySummaries: MonthlySummaryDTO[] | null;
   loadingMonthlySummaries: boolean;
   setUser: (user: UserDTO | null) => void;
-  login: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (
-    email: string,
-    password: string,
-    name: string
-  ) => Promise<{ error: string | null }>;
-  logout: () => Promise<void>;
+
   addTransaction: (
     transaction: Omit<TransactionDTO, "uid">
   ) => Promise<{ error: string | null }>;
@@ -57,48 +46,6 @@ export const useUserStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
 
   // Clean
-  login: async (email, password) => {
-    set({ loading: true });
-
-    try {
-      const user = await loginUserUseCase.execute({
-        email,
-        password,
-      });
-
-      await useUserStore.getState().getMonthlySummaries();
-
-      set({ user, loading: false });
-
-      return { error: null };
-    } catch (error: any) {
-      set({ loading: false });
-      return { error: error.message };
-    }
-  },
-
-  // Clean
-  signUp: async (email, password, name) => {
-    set({ loading: true });
-
-    try {
-      const user = await signUpUserUseCase.execute({
-        email,
-        password,
-        name,
-      });
-
-      set({ user, loading: false });
-
-      return { error: null };
-    } catch (error: any) {
-      set({ loading: false });
-
-      return { error: error.message };
-    }
-  },
-
-  // Clean
   addTransaction: async (transaction) => {
     set({ loading: true });
 
@@ -120,7 +67,6 @@ export const useUserStore = create<AuthState>((set) => ({
     } catch (error: any) {
       set({ loading: false });
       console.error(error.message);
-      
 
       return { error: error.message };
     }
@@ -281,13 +227,5 @@ export const useUserStore = create<AuthState>((set) => ({
 
       return { error: error.message };
     }
-  },
-
-  // Clean
-  logout: async () => {
-    await logoutUserUseCase.execute();
-
-    set({ user: null, transactions: null, monthlySummaries: null });
-    router.replace("/login");
   },
 }));

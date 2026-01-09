@@ -1,6 +1,6 @@
 import { IconDollar } from "@/components/icons";
 import { Colors } from "@/constants/theme";
-import { useUserStore } from "@/stores/userStore";
+import { useAuthStore } from "@/stores/auth-user-store";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
@@ -14,7 +14,7 @@ import Animated, {
 import Card from "./card";
 
 export function Summary() {
-  const { user } = useUserStore();
+  const { user } = useAuthStore();
   const balance = user?.balance || 0;
   const income = user?.totalIncome || 0;
   const expense = user?.totalExpense || 0;

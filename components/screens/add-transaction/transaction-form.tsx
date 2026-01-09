@@ -3,9 +3,13 @@ import DateField from "@/components/date-field";
 import PickerField from "@/components/picker-field";
 import TextField from "@/components/text-field";
 import { Colors } from "@/constants/theme";
-import { TRANSACTION_CATEGORIES, TRANSACTION_TYPES } from "@/constants/transactions";
+import {
+  TRANSACTION_CATEGORIES,
+  TRANSACTION_TYPES,
+} from "@/constants/transactions";
+import { useAuthStore } from "@/stores/auth-user-store";
 import { useToastStore } from "@/stores/toastStore";
-import { useUserStore } from "@/stores/userStore";
+import { useTransactionsStore } from "@/stores/transactions-store";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -18,7 +22,8 @@ export default function TransactionForm() {
   const [date, setDate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { user, loading, addTransaction } = useUserStore();
+  const { loading, add } = useTransactionsStore();
+  const { user, updateSummary } = useAuthStore();
   const { addToast } = useToastStore();
 
   const isFormFilled = [description, amount, type, flow, category, date].every(
@@ -63,7 +68,7 @@ export default function TransactionForm() {
 
     setErrors({});
 
-    const { error } = await addTransaction({
+    const { error } = await add({
       userUid: user?.uid || "",
       description,
       amount: Number(amount.replace(/\./g, "").replace(",", ".")),
@@ -77,7 +82,7 @@ export default function TransactionForm() {
     if (error) {
       addToast("Erro ao adicionar transação: " + error, "error");
 
-      return
+      return;
     }
 
     clearForm();

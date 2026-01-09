@@ -1,10 +1,10 @@
+import { TransactionDTO } from "@/application/dtos/transaction-dto";
 import { Header } from "@/components/header";
 import { List } from "@/components/screens/extract/list";
 import { TransactionFilterModal } from "@/components/screens/extract/transaction-filter";
 import { Colors } from "@/constants/theme";
-import { ITransaction } from "@/hooks/useTransaction";
 import { useToastStore } from "@/stores/toastStore";
-import { useUserStore } from "@/stores/userStore";
+import { useTransactionsStore } from "@/stores/transactions-store";
 import { useFocusEffect } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
@@ -18,9 +18,9 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Extract() {
-  const { transactions, getTransactions } = useUserStore();
+  const { transactions, fetch } = useTransactionsStore();
   const [filteredTransactions, setFilteredTransactions] = useState<
-    ITransaction[]
+    TransactionDTO[]
   >(transactions || []);
   const [filterVisible, setFilterVisible] = useState(false);
   const { addToast } = useToastStore();
@@ -51,7 +51,7 @@ export default function Extract() {
 
   useEffect(() => {
     async function fetchData() {
-      const { error } = await getTransactions();
+      const { error } = await fetch();
       if (error) addToast("Erro ao carregar transações " + error, "error");
     }
     fetchData();
@@ -62,7 +62,7 @@ export default function Extract() {
   }, [transactions]);
 
   function handleFilter(filters: any) {
-    let result: ITransaction[] = [...(transactions || [])];
+    let result: TransactionDTO[] = [...(transactions || [])];
 
     if (filters.description) {
       result = result.filter((t) =>
