@@ -35,7 +35,6 @@ npm start
 ├── app.json
 ├── eslint.config.js
 ├── expo-env.d.ts
-├── firebaseConfig.ts
 ├── package.json
 ├── README.md
 ├── tsconfig.json
@@ -55,29 +54,97 @@ npm start
 │       ├── add-transaction.tsx
 │       ├── dashboard.tsx
 │       └── extract.tsx
+├── application/
+│   ├── dtos/
+│       ├── file-attachment-dto.ts
+│       ├── monthly-summary-dto.ts
+│       ├── transaction-dto.ts
+│       ├── user-dto.ts
+│       └── user-summary-dto.ts
+│   ├── mappers/
+│       ├── file-attachment-mapper.ts
+│       ├── monthly-summary-mapper.ts
+│       ├── transaction-mapper.ts
+│       ├── user-mapper.ts
+│       └── user-summary-mapper.ts
+│   └── use-cases/
+│       ├── auth/
+│           ├── login-user-use-case.ts
+│           ├── logout-user-user-case.ts
+│           └── sign-up-user-use-case.ts
+│       ├── document-picker/
+│           ├── delete-file-attachment-use-case.ts
+│           ├── list-transaction-files-use-case.ts
+│           ├── pick-files-use-case.ts
+│           └── upload-file-attachment-use-case.ts
+│       ├── monthly-summary/
+│           └── get-monthly-summaries-use-case.ts
+│       ├── document-picker/
+│           ├── add-transaction-use-case.ts
+│           ├── delete-transaction-use-case.ts
+│           ├── get-transactions-by-user-use-case.ts
+│           └── update-transaction-use-case.ts
+│       └── user-summary/
+│           ├── create-user-summary-use-case.ts
+│           ├── get-user-summary-use-case.ts
+│           └── update-user-summary-use-case.ts
 ├── assets/
 │   └── images/
-├── components/
-│   ├── base-button/
-│   ├── date-field/
-│   ├── header/
-│   ├── icons/
-│   ├── picker-field/
-│   ├── screens/
-│       ├── add-transaction.tsx
-│       ├── dashboard.tsx
-│       ├── extract.tsx
-│       └── login.tsx
-│   ├── text-field/
-│   └── toast/
-├── constants/
-│   └── theme.ts
-├── hooks/
-│   ├── useTransaction.ts
-│   └── useUserSummary.ts
-├── stores/
-│   ├── toastStore.ts
-│   └── userStore.ts
-└── types/
-    └── firebase-auth.d.ts
+├── domain/
+│   ├── entities/
+│       ├── file-attachment.ts
+│       ├── monthly-summary.ts
+│       ├── transaction.ts
+│       ├── user-summary.ts
+│       └── user.ts
+│   ├── repositories/
+│       ├── auth-repository.ts
+│       ├── file-attachment-repository.ts
+│       ├── monthly-summary-repository.ts
+│       ├── transaction-repository.ts
+│       └── user-summary-repository.ts
+│   └── types/
+├── infra/
+│   ├── container/
+│      ├── auth.container.ts
+│      ├── file-attachment.ts
+│      ├── index.ts
+│      ├── monthly-summary.container.ts
+│      ├── transaction.container.ts
+│      └── user-summary.container.ts
+│   ├── document-picker/
+│      └── repositories/
+│         └── expo-document-picker-repository.ts
+│   └── firebase/
+│       ├── config/
+│           └── firebase-config.tsx
+│       └── repositories/
+│           ├── firebase-auth-repository.ts
+│           ├── firebase-monthly-summary-repository.ts
+│           ├── firebase-transaction-repository.ts
+│           └── firebase-user-summary-repository.ts
+├── types/
+│   └── firebase-auth.d.ts
+└── ui/
+    ├── components/
+        ├── base-button/
+        ├── date-field/
+        ├── header/
+        ├── icons/
+        ├── picker-field/
+        ├── screens/
+            ├── add-transaction.tsx
+            ├── dashboard.tsx
+            ├── extract.tsx
+            └── login.tsx
+        ├── text-field/
+        └── toast/
+    ├── constants/
+        └── theme.ts
+    ├── hooks/
+        ├── useTransaction.ts
+        └── useUserSummary.ts
+    └── stores/
+        ├── toastStore.ts
+        └── userStore.ts
 ```

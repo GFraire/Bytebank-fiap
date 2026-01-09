@@ -1,5 +1,5 @@
-import { FileAttachment } from "@/domain/entities/file-attatchment";
-import { FileAttachmentDTO } from "../dtos/fille-attatchment-dto";
+import { FileAttachment } from "@/domain/entities/file-attachment";
+import { FileAttachmentDTO } from "../dtos/file-attachment-dto";
 
 export class FileAttachmentMapper {
   static toDTO(fileAttachment: FileAttachment): FileAttachmentDTO {

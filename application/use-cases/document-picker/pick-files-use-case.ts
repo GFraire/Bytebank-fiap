@@ -1,10 +1,10 @@
-import { FileAttachmentDTO } from "@/application/dtos/fille-attatchment-dto";
+import { FileAttachmentDTO } from "@/application/dtos/file-attachment-dto";
 import { FileAttachmentRepository } from "@/domain/repositories/file-attachment-repository";
 
 export class PickFilesUseCase {
-  constructor(private fileAttatchmentRepository: FileAttachmentRepository) {}
+  constructor(private fileAttachmentRepository: FileAttachmentRepository) {}
 
   async execute(): Promise<FileAttachmentDTO[]> {
-    return await this.fileAttatchmentRepository.pickFiles();
+    return await this.fileAttachmentRepository.pickFiles();
   }
 }

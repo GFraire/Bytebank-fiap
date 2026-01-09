@@ -1,4 +1,4 @@
-import { FileAttachment } from "../entities/file-attatchment";
+import { FileAttachment } from "../entities/file-attachment";
 import { StoredFile } from "../types/stored-file";
 
 export interface FileAttachmentRepository {

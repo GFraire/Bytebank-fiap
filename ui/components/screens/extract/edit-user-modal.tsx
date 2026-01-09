@@ -1,28 +1,28 @@
-import { FileAttachmentDTO } from "@/application/dtos/fille-attatchment-dto";
+import { FileAttachmentDTO } from "@/application/dtos/file-attachment-dto";
 import { TransactionDTO } from "@/application/dtos/transaction-dto";
 import {
-    pickFilesUseCase,
-    uploadFileAttachmentUseCase,
-} from "@/infra/container/file-attatchment";
+  pickFilesUseCase,
+  uploadFileAttachmentUseCase,
+} from "@/infra/container/file-attachment";
 import { BaseButton } from "@/ui/components/base-button";
 import DateField from "@/ui/components/date-field";
 import PickerField from "@/ui/components/picker-field";
 import TextField from "@/ui/components/text-field";
 import { Colors } from "@/ui/constants/theme";
 import {
-    TRANSACTION_CATEGORIES,
-    TRANSACTION_TYPES,
+  TRANSACTION_CATEGORIES,
+  TRANSACTION_TYPES,
 } from "@/ui/constants/transactions";
 import { useToastStore } from "@/ui/stores/toastStore";
 import { useTransactionsStore } from "@/ui/stores/transactions-store";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface EditTransactionModalProps {

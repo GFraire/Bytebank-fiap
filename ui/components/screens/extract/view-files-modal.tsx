@@ -1,17 +1,17 @@
 import {
-    deleteFileAttachmentUseCase,
-    listTransactionFilesUseCase,
-} from "@/infra/container/file-attatchment";
+  deleteFileAttachmentUseCase,
+  listTransactionFilesUseCase,
+} from "@/infra/container/file-attachment";
 import { Colors } from "@/ui/constants/theme";
 import React, { useEffect, useState } from "react";
 import {
-    Linking,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Linking,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface ViewFilesModalProps {

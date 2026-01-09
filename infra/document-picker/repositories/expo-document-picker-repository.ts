@@ -1,4 +1,4 @@
-import { FileAttachment } from "@/domain/entities/file-attatchment";
+import { FileAttachment } from "@/domain/entities/file-attachment";
 import { FileAttachmentRepository } from "@/domain/repositories/file-attachment-repository";
 import * as DocumentPicker from "expo-document-picker";
 import {

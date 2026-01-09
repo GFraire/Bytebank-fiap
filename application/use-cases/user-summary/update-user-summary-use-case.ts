@@ -1,5 +1,5 @@
-import { UserSummary } from "../../entities/user-summary";
-import { UserSummaryRepository } from "../../repositories/user-summary-repository";
+import { UserSummary } from "@/domain/entities/user-summary";
+import { UserSummaryRepository } from "@/domain/repositories/user-summary-repository";
 
 interface UpdateUserSummaryInput {
   uid: string;
